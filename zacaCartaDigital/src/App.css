@@ -10,7 +10,7 @@
   min-height: 100vh;
   position: relative;
   overflow: hidden;
-  background: var(--paper);
+  background: linear-gradient(135deg, #eaf5ee 0%, #faf7ef 48%, #f9eeeb 100%);
   color: var(--ink);
 }
 

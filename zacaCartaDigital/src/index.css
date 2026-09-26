@@ -3,7 +3,7 @@
 :root {
   font-family: 'DM Sans', sans-serif;
   color: #26332f;
-  background: #faf9f5;
+  background: linear-gradient(135deg, #f1f8f4 0%, #faf9f5 48%, #fff5f2 100%);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
