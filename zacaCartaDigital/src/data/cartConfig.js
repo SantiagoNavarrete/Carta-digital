@@ -1,0 +1,1 @@
+export const tipPercentages = [0, 10, 15, 25]

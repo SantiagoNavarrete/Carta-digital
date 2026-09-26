@@ -1,7 +1,13 @@
 import { useState } from 'react'
+import { branches } from './data/branches'
 import { menuSections, complements } from './data/menuData'
 import BranchSelector from './components/BranchSelector'
+import CartDrawer from './components/CartDrawer'
+import CartIcon from './components/CartIcon'
 import LocationPicker from './components/LocationPicker'
+import OrderTypeModal from './components/OrderTypeModal'
+import { useCart } from './context/useCart'
+import { formatARS } from './utils/currency'
 import './App.css'
 
 function ChefHat() {
@@ -14,9 +20,14 @@ function ChefHat() {
   )
 }
 
-function Header({ search, onSearchChange }) {
+function Header({ search, onSearchChange, tipoPedido, onChangeOrderType }) {
   return (
     <header className="site-header">
+      {tipoPedido && (
+        <button type="button" className="order-type-switch" onClick={onChangeOrderType}>
+          {tipoPedido === 'retiro' ? 'Retiro en sucursal' : 'Delivery'} <span>Cambiar</span>
+        </button>
+      )}
       <div className="brand-mark"><ChefHat /></div>
       <p className="header-kicker">COCINA MEXICANA · ITALIANA · ARGENTINA</p>
       <h1>EntreNos</h1>
@@ -37,7 +48,10 @@ function Header({ search, onSearchChange }) {
   )
 }
 
-function MenuItem({ item }) {
+function MenuItem({ item, sectionId }) {
+  const [quantity, setQuantity] = useState(1)
+  const { addItem } = useCart()
+
   return (
     <li className="menu-item">
       <div className="item-main">
@@ -45,7 +59,21 @@ function MenuItem({ item }) {
         {item.description && <span className="item-description">{item.description}</span>}
       </div>
       <span className="dot-leader" aria-hidden="true" />
-      <span className="item-price">{item.price}</span>
+      <span className="item-price">{formatARS(item.price)}</span>
+      <div className="menu-item-actions">
+        <div className="quantity-control" aria-label={`Cantidad de ${item.name}`}>
+          <button type="button" onClick={() => setQuantity((value) => Math.max(1, value - 1))} aria-label={`Disminuir cantidad de ${item.name}`}>−</button>
+          <span>{quantity}</span>
+          <button type="button" onClick={() => setQuantity((value) => value + 1)} aria-label={`Aumentar cantidad de ${item.name}`}>+</button>
+        </div>
+        <button
+          type="button"
+          className="add-to-cart"
+          onClick={() => addItem({ id: `${sectionId}:${item.name}`, name: item.name, price: item.price }, quantity)}
+        >
+          Agregar
+        </button>
+      </div>
     </li>
   )
 }
@@ -59,7 +87,7 @@ function CategorySection({ section }) {
         {section.subtitle && <span className="section-subtitle">{section.subtitle}</span>}
       </div>
       {section.note && <p className="section-note">{section.note}</p>}
-      <ul className="menu-list">{section.items.map((item) => <MenuItem key={item.name} item={item} />)}</ul>
+      <ul className="menu-list">{section.items.map((item) => <MenuItem key={item.name} item={item} sectionId={section.id} />)}</ul>
       {section.footnote && <p className="section-footnote">{section.footnote}</p>}
     </section>
   )
@@ -86,13 +114,25 @@ function Footer() {
 }
 
 function App() {
+  const [tipoPedido, setTipoPedido] = useState(() => {
+    try {
+      const savedType = window.localStorage.getItem('entrenos:tipoPedido')
+      return savedType === 'retiro' || savedType === 'delivery' ? savedType : null
+    } catch {
+      return null
+    }
+  })
   const [search, setSearch] = useState('')
   const [deliveryLocation, setDeliveryLocation] = useState(null)
   const [preferredBranchId, setPreferredBranchId] = useState('')
   const [assignedBranch, setAssignedBranch] = useState(null)
+  const [pickupBranchId, setPickupBranchId] = useState('')
   const [confirmedLocationKey, setConfirmedLocationKey] = useState(null)
   const locationKey = deliveryLocation ? `${deliveryLocation.latitude},${deliveryLocation.longitude}` : null
-  const deliveryReady = Boolean(locationKey) && confirmedLocationKey === locationKey
+  const selectionKey = tipoPedido === 'retiro'
+    ? pickupBranchId
+    : locationKey && assignedBranch ? `${locationKey},${assignedBranch.id}` : null
+  const orderReady = Boolean(selectionKey) && confirmedLocationKey === selectionKey
   const normalizedSearch = search.trim().toLocaleLowerCase('es')
   const visibleSections = menuSections.map((section) => ({
     ...section,
@@ -101,11 +141,38 @@ function App() {
     ),
   }))
 
+  function selectOrderType(orderType) {
+    setTipoPedido(orderType)
+    setConfirmedLocationKey(null)
+    try {
+      window.localStorage.setItem('entrenos:tipoPedido', orderType)
+    } catch {
+      return
+    }
+  }
+
+  function changeOrderType() {
+    setTipoPedido(null)
+    setConfirmedLocationKey(null)
+    try {
+      window.localStorage.removeItem('entrenos:tipoPedido')
+    } catch {
+      return
+    }
+  }
+
+  if (!tipoPedido) return <OrderTypeModal onSelect={selectOrderType} />
+
   return (
     <div className="menu-page">
       <div className="corner-ribbon corner-ribbon-top" aria-hidden="true" />
       <div className="corner-ribbon corner-ribbon-bottom" aria-hidden="true" />
-      <Header search={search} onSearchChange={setSearch} />
+      <Header
+        search={search}
+        onSearchChange={setSearch}
+        tipoPedido={tipoPedido}
+        onChangeOrderType={changeOrderType}
+      />
       <nav className="category-nav" aria-label="Categorías del menú">
         {visibleSections.map((section) => (
           <a key={section.id} href={`#${section.id}`} aria-disabled={section.items.length === 0} className={section.items.length === 0 ? 'is-disabled' : ''}>
@@ -120,38 +187,61 @@ function App() {
         <section className="delivery-section" aria-labelledby="delivery-title">
           <div className="section-heading">
             <span className="section-index">00</span>
-            <h2 id="delivery-title">¿Dónde te lo llevamos?</h2>
+            <h2 id="delivery-title">{tipoPedido === 'retiro' ? '¿Dónde lo retirás?' : '¿Dónde te lo llevamos?'}</h2>
           </div>
-          <p className="delivery-intro">Elegí el punto de entrega y verificamos qué sucursal puede atenderte.</p>
-          <div className="delivery-grid">
-            <LocationPicker location={deliveryLocation} onLocationChange={setDeliveryLocation} />
-            <BranchSelector
-              location={deliveryLocation}
-              preferredBranchId={preferredBranchId}
-              onPreferredBranchChange={(branchId) => {
-                setPreferredBranchId(branchId)
-                setConfirmedLocationKey(null)
-              }}
-              onAssignmentChange={setAssignedBranch}
-            />
+          <p className="delivery-intro">
+            {tipoPedido === 'retiro'
+              ? 'Elegí la sucursal donde vas a pasar a buscar tu pedido.'
+              : 'Elegí el punto de entrega y verificamos qué sucursal puede atenderte.'}
+          </p>
+          <div className={`delivery-grid ${tipoPedido === 'retiro' ? 'is-pickup' : ''}`}>
+            {tipoPedido === 'delivery' && (
+              <LocationPicker location={deliveryLocation} onLocationChange={setDeliveryLocation} />
+            )}
+            {tipoPedido === 'retiro' ? (
+              <BranchSelector
+                key={tipoPedido}
+                mode="pickup"
+                pickupBranchId={pickupBranchId}
+                onPickupBranchChange={(branchId) => {
+                  setPickupBranchId(branchId)
+                  setConfirmedLocationKey(null)
+                }}
+              />
+            ) : (
+              <BranchSelector
+                key={tipoPedido}
+                location={deliveryLocation}
+                preferredBranchId={preferredBranchId}
+                onPreferredBranchChange={(branchId) => {
+                  setPreferredBranchId(branchId)
+                  setConfirmedLocationKey(null)
+                }}
+                onAssignmentChange={setAssignedBranch}
+              />
+            )}
           </div>
           <button
             type="button"
             className="delivery-continue"
-            disabled={!deliveryLocation || !assignedBranch}
-            onClick={() => setConfirmedLocationKey(locationKey)}
+            disabled={!selectionKey}
+            onClick={() => setConfirmedLocationKey(selectionKey)}
           >
             Continuar con el pedido
           </button>
-          {deliveryReady && (
+          {orderReady && (
             <p className="delivery-saved" role="status">
-              Ubicación guardada: {deliveryLocation.address || `${deliveryLocation.latitude.toFixed(5)}, ${deliveryLocation.longitude.toFixed(5)}`} · {assignedBranch.name}.
+              {tipoPedido === 'retiro'
+                ? `Retiro guardado en ${branches.find((branch) => branch.id === pickupBranchId)?.name}.`
+                : `Ubicación guardada: ${deliveryLocation.address || `${deliveryLocation.latitude.toFixed(5)}, ${deliveryLocation.longitude.toFixed(5)}`} · ${assignedBranch.name}.`}
             </p>
           )}
         </section>
         <Complements />
       </main>
       <Footer />
+      <CartIcon />
+      <CartDrawer />
     </div>
   )
 }
