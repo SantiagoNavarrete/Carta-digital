@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { menuSections, complements } from './data/menuData'
+import BranchSelector from './components/BranchSelector'
+import LocationPicker from './components/LocationPicker'
 import './App.css'
 
 function ChefHat() {
@@ -85,6 +87,12 @@ function Footer() {
 
 function App() {
   const [search, setSearch] = useState('')
+  const [deliveryLocation, setDeliveryLocation] = useState(null)
+  const [preferredBranchId, setPreferredBranchId] = useState('')
+  const [assignedBranch, setAssignedBranch] = useState(null)
+  const [confirmedLocationKey, setConfirmedLocationKey] = useState(null)
+  const locationKey = deliveryLocation ? `${deliveryLocation.latitude},${deliveryLocation.longitude}` : null
+  const deliveryReady = Boolean(locationKey) && confirmedLocationKey === locationKey
   const normalizedSearch = search.trim().toLocaleLowerCase('es')
   const visibleSections = menuSections.map((section) => ({
     ...section,
@@ -109,6 +117,38 @@ function App() {
         {visibleSections.some((section) => section.items.length > 0)
           ? visibleSections.filter((section) => section.items.length > 0).map((section) => <CategorySection key={section.id} section={section} />)
           : <p className="empty-state">No encontramos platos con “{search}”. Prueba con otro nombre.</p>}
+        <section className="delivery-section" aria-labelledby="delivery-title">
+          <div className="section-heading">
+            <span className="section-index">00</span>
+            <h2 id="delivery-title">¿Dónde te lo llevamos?</h2>
+          </div>
+          <p className="delivery-intro">Elegí el punto de entrega y verificamos qué sucursal puede atenderte.</p>
+          <div className="delivery-grid">
+            <LocationPicker location={deliveryLocation} onLocationChange={setDeliveryLocation} />
+            <BranchSelector
+              location={deliveryLocation}
+              preferredBranchId={preferredBranchId}
+              onPreferredBranchChange={(branchId) => {
+                setPreferredBranchId(branchId)
+                setConfirmedLocationKey(null)
+              }}
+              onAssignmentChange={setAssignedBranch}
+            />
+          </div>
+          <button
+            type="button"
+            className="delivery-continue"
+            disabled={!deliveryLocation || !assignedBranch}
+            onClick={() => setConfirmedLocationKey(locationKey)}
+          >
+            Continuar con el pedido
+          </button>
+          {deliveryReady && (
+            <p className="delivery-saved" role="status">
+              Ubicación guardada: {deliveryLocation.address || `${deliveryLocation.latitude.toFixed(5)}, ${deliveryLocation.longitude.toFixed(5)}`} · {assignedBranch.name}.
+            </p>
+          )}
+        </section>
         <Complements />
       </main>
       <Footer />
