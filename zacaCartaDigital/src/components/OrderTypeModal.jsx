@@ -4,8 +4,8 @@ function OrderTypeModal({ onSelect }) {
       <section className="order-type-modal" role="dialog" aria-modal="true" aria-labelledby="order-type-title">
         <div className="order-type-brand-mark" aria-hidden="true">E</div>
         <p className="header-kicker">ENTRENOS · COCINA PARA COMPARTIR</p>
-        <h1 id="order-type-title">¿Cómo querés tu pedido?</h1>
-        <p className="order-type-subtitle">Elegí una opción para ver la carta</p>
+        <h1 id="order-type-title">¿Cómo gusta su pedido?</h1>
+        <p className="order-type-subtitle">Elige una opción para ver la carta</p>
         <div className="order-type-options">
           <button type="button" className="order-type-option" onClick={() => onSelect('retiro')}>
             <svg viewBox="0 0 48 48" aria-hidden="true">
