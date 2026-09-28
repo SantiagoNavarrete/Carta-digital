@@ -1,12 +1,16 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { branches } from './data/branches'
 import { menuSections, complements } from './data/menuData'
 import BranchSelector from './components/BranchSelector'
 import CartDrawer from './components/CartDrawer'
 import CartIcon from './components/CartIcon'
+import FlyingDot from './components/FlyingDot'
+import OpenStatusButton from './components/OpenStatusButton'
 import LocationPicker from './components/LocationPicker'
 import OrderTypeModal from './components/OrderTypeModal'
+import SocialLinks from './components/SocialLinks'
 import { useCart } from './context/useCart'
+import useFlyToCart from './useFlyToCart'
 import { formatARS } from './utils/currency'
 import './App.css'
 
@@ -32,6 +36,7 @@ function Header({ search, onSearchChange, tipoPedido, onChangeOrderType }) {
       <p className="header-kicker">COCINA MEXICANA · ITALIANA · ARGENTINA</p>
       <h1>EntreNos</h1>
       <p className="tagline">Más que comida, buenos momentos</p>
+      <SocialLinks />
       <div className="flag-rule" aria-hidden="true"><span /><span /><span /></div>
       <label className="search-box">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 5 5" /></svg>
@@ -48,7 +53,7 @@ function Header({ search, onSearchChange, tipoPedido, onChangeOrderType }) {
   )
 }
 
-function MenuItem({ item, sectionId }) {
+function MenuItem({ item, sectionId, flyToCart }) {
   const [quantity, setQuantity] = useState(1)
   const { addItem } = useCart()
 
@@ -69,7 +74,10 @@ function MenuItem({ item, sectionId }) {
         <button
           type="button"
           className="add-to-cart"
-          onClick={() => addItem({ id: `${sectionId}:${item.name}`, name: item.name, price: item.price }, quantity)}
+          onClick={(event) => {
+            const itemToAdd = { id: `${sectionId}:${item.name}`, name: item.name, price: item.price }
+            flyToCart(event.currentTarget, () => addItem(itemToAdd, quantity))
+          }}
         >
           Agregar
         </button>
@@ -78,7 +86,7 @@ function MenuItem({ item, sectionId }) {
   )
 }
 
-function CategorySection({ section }) {
+function CategorySection({ section, flyToCart }) {
   return (
     <section className="category-section" id={section.id}>
       <div className="section-heading">
@@ -87,7 +95,7 @@ function CategorySection({ section }) {
         {section.subtitle && <span className="section-subtitle">{section.subtitle}</span>}
       </div>
       {section.note && <p className="section-note">{section.note}</p>}
-      <ul className="menu-list">{section.items.map((item) => <MenuItem key={item.name} item={item} sectionId={section.id} />)}</ul>
+      <ul className="menu-list">{section.items.map((item) => <MenuItem key={item.name} item={item} sectionId={section.id} flyToCart={flyToCart} />)}</ul>
       {section.footnote && <p className="section-footnote">{section.footnote}</p>}
     </section>
   )
@@ -110,10 +118,17 @@ function Complements() {
 }
 
 function Footer() {
-  return <footer className="site-footer">Pasión por la buena comida <span aria-label="amor">♥</span></footer>
+  return (
+    <footer className="site-footer">
+      <span className="footer-tagline">Pasión por la buena comida <span aria-label="amor">♥</span></span>
+      <SocialLinks />
+    </footer>
+  )
 }
 
 function App() {
+  const cartIconRef = useRef(null)
+  const { flyToCart, flights, finishFlight } = useFlyToCart(cartIconRef)
   const [tipoPedido, setTipoPedido] = useState(() => {
     try {
       const savedType = window.localStorage.getItem('entrenos:tipoPedido')
@@ -182,7 +197,7 @@ function App() {
       </nav>
       <main className="menu-content">
         {visibleSections.some((section) => section.items.length > 0)
-          ? visibleSections.filter((section) => section.items.length > 0).map((section) => <CategorySection key={section.id} section={section} />)
+          ? visibleSections.filter((section) => section.items.length > 0).map((section) => <CategorySection key={section.id} section={section} flyToCart={flyToCart} />)
           : <p className="empty-state">No encontramos platos con “{search}”. Prueba con otro nombre.</p>}
         <section className="delivery-section" aria-labelledby="delivery-title">
           <div className="section-heading">
@@ -240,8 +255,16 @@ function App() {
         <Complements />
       </main>
       <Footer />
-      <CartIcon />
-      <CartDrawer />
+      <OpenStatusButton branches={branches} />
+      <CartIcon ref={cartIconRef} />
+      <CartDrawer
+        tipoPedido={tipoPedido}
+        sucursal={tipoPedido === 'retiro'
+          ? branches.find((branch) => branch.id === pickupBranchId) ?? null
+          : assignedBranch}
+        ubicacion={deliveryLocation}
+      />
+      {flights.map((flight) => <FlyingDot key={flight.id} flight={flight} onFinish={finishFlight} />)}
     </div>
   )
 }

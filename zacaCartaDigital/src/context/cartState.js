@@ -29,6 +29,8 @@ export function cartReducer(state, action) {
       }
     case 'remove-item':
       return { ...state, items: state.items.filter((item) => item.id !== action.id) }
+    case 'clear-cart':
+      return { ...state, items: [], tipPercentage: 0 }
     case 'set-tip':
       return { ...state, tipPercentage: action.percentage }
     case 'open-cart':

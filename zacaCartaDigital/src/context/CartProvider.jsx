@@ -19,6 +19,7 @@ function CartProvider({ children }) {
     }),
     setQuantity: (id, quantity) => dispatch({ type: 'set-quantity', id, quantity }),
     removeItem: (id) => dispatch({ type: 'remove-item', id }),
+    clearCart: () => dispatch({ type: 'clear-cart' }),
     setTipPercentage: (percentage) => dispatch({ type: 'set-tip', percentage }),
     openCart: () => dispatch({ type: 'open-cart' }),
     closeCart: () => dispatch({ type: 'close-cart' }),
