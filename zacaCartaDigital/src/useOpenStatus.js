@@ -61,9 +61,9 @@ export function formatNextOpening(date, now = new Date()) {
   const daysAway = Math.round((new Date(date.getFullYear(), date.getMonth(), date.getDate())
     - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000)
   const time = date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
-  if (daysAway === 0) return `Abre hoy a las ${time}`
-  if (daysAway === 1) return `Abre mañana a las ${time}`
-  return `Abre el ${dayNames[date.getDay()]} a las ${time}`
+  if (daysAway === 0) return `Abrimos hoy a las ${time}`
+  if (daysAway === 1) return `Abrimos mañana a las ${time}`
+  return `Abrimos el ${dayNames[date.getDay()]} a las ${time}`
 }
 
 export default function useOpenStatus(schedule) {

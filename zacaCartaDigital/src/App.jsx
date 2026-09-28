@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { branches } from './data/branches'
 import { menuSections, complements } from './data/menuData'
 import BranchSelector from './components/BranchSelector'
@@ -53,37 +53,48 @@ function Header({ search, onSearchChange, tipoPedido, onChangeOrderType }) {
   )
 }
 
-function MenuItem({ item, sectionId, flyToCart }) {
+function MenuItem({ item, sectionId, flyToCart, showDivider }) {
   const [quantity, setQuantity] = useState(1)
   const { addItem } = useCart()
 
   return (
     <li className="menu-item">
-      <div className="item-main">
-        <span className="item-name">{item.name}</span>
-        {item.description && <span className="item-description">{item.description}</span>}
-      </div>
-      <span className="dot-leader" aria-hidden="true" />
-      <span className="item-price">{formatARS(item.price)}</span>
-      <div className="menu-item-actions">
-        <div className="quantity-control" aria-label={`Cantidad de ${item.name}`}>
-          <button type="button" onClick={() => setQuantity((value) => Math.max(1, value - 1))} aria-label={`Disminuir cantidad de ${item.name}`}>−</button>
-          <span>{quantity}</span>
-          <button type="button" onClick={() => setQuantity((value) => value + 1)} aria-label={`Aumentar cantidad de ${item.name}`}>+</button>
+      <div className="menu-item-content">
+        <div className="item-main">
+          <span className="item-name">{item.name}</span>
+          {item.description && <span className="item-description">{item.description}</span>}
         </div>
-        <button
-          type="button"
-          className="add-to-cart"
-          onClick={(event) => {
-            const itemToAdd = { id: `${sectionId}:${item.name}`, name: item.name, price: item.price }
-            flyToCart(event.currentTarget, () => addItem(itemToAdd, quantity))
-          }}
-        >
-          Agregar
-        </button>
+        <span className="dot-leader" aria-hidden="true" />
+        <span className="item-price">{formatARS(item.price)}</span>
+        <div className="menu-item-actions">
+          <div className="quantity-control" aria-label={`Cantidad de ${item.name}`}>
+            <button type="button" onClick={() => setQuantity((value) => Math.max(1, value - 1))} aria-label={`Disminuir cantidad de ${item.name}`}>−</button>
+            <span>{quantity}</span>
+            <button type="button" onClick={() => setQuantity((value) => value + 1)} aria-label={`Aumentar cantidad de ${item.name}`}>+</button>
+          </div>
+          <button
+            type="button"
+            className="add-to-cart"
+            onClick={(event) => {
+              const itemToAdd = { id: `${sectionId}:${item.name}`, name: item.name, price: item.price }
+              flyToCart(event.currentTarget, () => addItem(itemToAdd, quantity))
+            }}
+          >
+            Agregar
+          </button>
+        </div>
       </div>
+      {showDivider && <Divider />}
     </li>
   )
+}
+
+function Divider() {
+  return <div className="menu-divider" aria-hidden="true" />
+}
+
+function SectionDivider() {
+  return <div className="section-divider" aria-hidden="true" />
 }
 
 function CategorySection({ section, flyToCart }) {
@@ -95,7 +106,7 @@ function CategorySection({ section, flyToCart }) {
         {section.subtitle && <span className="section-subtitle">{section.subtitle}</span>}
       </div>
       {section.note && <p className="section-note">{section.note}</p>}
-      <ul className="menu-list">{section.items.map((item) => <MenuItem key={item.name} item={item} sectionId={section.id} flyToCart={flyToCart} />)}</ul>
+      <ul className="menu-list">{section.items.map((item, index) => <MenuItem key={item.name} item={item} sectionId={section.id} flyToCart={flyToCart} showDivider={index < section.items.length - 1} />)}</ul>
       {section.footnote && <p className="section-footnote">{section.footnote}</p>}
     </section>
   )
@@ -155,6 +166,7 @@ function App() {
       `${item.name} ${item.description ?? ''}`.toLocaleLowerCase('es').includes(normalizedSearch),
     ),
   }))
+  const menuSectionsToShow = visibleSections.filter((section) => section.items.length > 0)
 
   function selectOrderType(orderType) {
     setTipoPedido(orderType)
@@ -196,8 +208,13 @@ function App() {
         ))}
       </nav>
       <main className="menu-content">
-        {visibleSections.some((section) => section.items.length > 0)
-          ? visibleSections.filter((section) => section.items.length > 0).map((section) => <CategorySection key={section.id} section={section} flyToCart={flyToCart} />)
+        {menuSectionsToShow.length > 0
+          ? menuSectionsToShow.map((section, index) => (
+            <Fragment key={section.id}>
+              {index > 0 && <SectionDivider />}
+              <CategorySection section={section} flyToCart={flyToCart} />
+            </Fragment>
+          ))
           : <p className="empty-state">No encontramos platos con “{search}”. Prueba con otro nombre.</p>}
         <section className="delivery-section" aria-labelledby="delivery-title">
           <div className="section-heading">

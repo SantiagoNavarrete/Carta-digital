@@ -28,7 +28,7 @@ function FlyingDot({ flight, onFinish }) {
           opacity: 0,
         },
       ],
-      { duration: 700, easing: 'cubic-bezier(.2,.72,.25,1)', fill: 'forwards' },
+      { duration: 1300, easing: 'cubic-bezier(.34,.86,.64,1)', fill: 'forwards' },
     )
     animation.onfinish = () => onFinish(flight.id)
 

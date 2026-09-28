@@ -18,8 +18,10 @@ function OpenStatusButton({ branches }) {
         aria-expanded={isModalOpen}
       >
         <span className="status-indicator" aria-hidden="true" />
-        <span>{status.isOpen ? 'Abierto ahora' : 'Cerrado'}</span>
-        {!status.isOpen && <span className="status-next-open">{formatNextOpening(status.nextOpening, status.now)}</span>}
+        <span className="status-copy">
+          <span>{status.isOpen ? 'Abierto ahora' : '¡Abrimos pronto!'}</span>
+          {!status.isOpen && <span className="status-next-open">{formatNextOpening(status.nextOpening, status.now)}</span>}
+        </span>
       </button>
       {isModalOpen && <InfoModal branches={branches} onClose={() => setIsModalOpen(false)} />}
     </>

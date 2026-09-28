@@ -35,7 +35,7 @@ function BranchInfo({ branch, index }) {
           <h3 id={`branch-title-${branch.id}`}>{branch.name}</h3>
         </div>
         <span className={`info-status ${status.isOpen ? 'is-open' : 'is-closed'}`}>
-          <span aria-hidden="true" />{status.isOpen ? 'Abierto' : 'Cerrado'}
+          <span aria-hidden="true" />{status.isOpen ? 'Abierto' : '¡Abrimos pronto!'}
         </span>
       </div>
       {!status.isOpen && <p className="next-opening">{formatNextOpening(status.nextOpening, status.now)}</p>}

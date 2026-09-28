@@ -24,7 +24,10 @@ function useFlyToCart(cartElementRef) {
           { transform: 'scale(1.35)' },
           { transform: 'scale(1)' },
         ],
-      { duration: isReducedMotion ? 240 : 300, easing: 'ease-out' },
+      {
+        duration: isReducedMotion ? 240 : 500,
+        easing: isReducedMotion ? 'ease-out' : 'cubic-bezier(.34,1.56,.64,1)',
+      },
     )
   }, [cartElementRef])
 
