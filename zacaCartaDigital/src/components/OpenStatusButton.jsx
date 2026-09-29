@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { HORARIOS } from '../config'
-import useOpenStatus, { formatNextOpening } from '../useOpenStatus'
+import useOpenStatus from '../useOpenStatus'
 import InfoModal from './InfoModal'
 
 function OpenStatusButton({ branches }) {
@@ -20,7 +20,6 @@ function OpenStatusButton({ branches }) {
         <span className="status-indicator" aria-hidden="true" />
         <span className="status-copy">
           <span>{status.isOpen ? 'Abierto ahora' : '¡Abrimos pronto!'}</span>
-          {!status.isOpen && <span className="status-next-open">{formatNextOpening(status.nextOpening, status.now)}</span>}
         </span>
       </button>
       {isModalOpen && <InfoModal branches={branches} onClose={() => setIsModalOpen(false)} />}

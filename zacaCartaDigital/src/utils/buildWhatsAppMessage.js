@@ -12,7 +12,6 @@ function getItemComplements(item) {
 
 export function buildWhatsAppMessage({
   items,
-  tipoPedido,
   sucursal,
   ubicacion,
   porcentajePropina,
@@ -20,22 +19,16 @@ export function buildWhatsAppMessage({
   propina,
   total,
 }) {
-  const isDelivery = tipoPedido === 'delivery'
   const lines = [
     '🍽️ *NUEVO PEDIDO - EntreNos*',
     '',
-    `📦 *Modalidad:* ${isDelivery ? 'Delivery' : 'Retiro en sucursal'}`,
+    '📦 *Modalidad:* Delivery',
     `🏪 *Sucursal:* ${sucursal?.name ?? 'Sin sucursal seleccionada'}`,
   ]
 
-  if (isDelivery) {
-    const address = ubicacion?.address || `${ubicacion?.latitude ?? ''}, ${ubicacion?.longitude ?? ''}`
-    lines.push(`📍 *Dirección de entrega:* ${address}`)
-    lines.push(`🗺️ *Ubicación:* https://www.google.com/maps?q=${ubicacion?.latitude},${ubicacion?.longitude}`)
-  } else {
-    if (sucursal?.address) lines.push(`📍 *Dirección:* ${sucursal.address}`)
-    if (sucursal?.hours) lines.push(`🕒 *Horario:* ${sucursal.hours}`)
-  }
+  const address = ubicacion?.address || `${ubicacion?.latitude ?? ''}, ${ubicacion?.longitude ?? ''}`
+  lines.push(`📍 *Dirección de entrega:* ${address}`)
+  lines.push(`🗺️ *Ubicación:* https://www.google.com/maps?q=${ubicacion?.latitude},${ubicacion?.longitude}`)
 
   lines.push('', '🛒 *Pedido:*')
   items.forEach((item) => {

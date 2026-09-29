@@ -4,7 +4,7 @@ import PayButton from './PayButton'
 import { useCart } from '../context/useCart'
 import { formatARS } from '../utils/currency'
 
-function CartDrawer({ tipoPedido, sucursal, ubicacion }) {
+function CartDrawer({ sucursal, ubicacion }) {
   const { items, subtotal, total, closeCart, isCartOpen } = useCart()
   if (!isCartOpen) return null
 
@@ -32,7 +32,7 @@ function CartDrawer({ tipoPedido, sucursal, ubicacion }) {
         ) : (
           <p className="cart-empty">Todavía no agregaste productos.</p>
         )}
-        <PayButton tipoPedido={tipoPedido} sucursal={sucursal} ubicacion={ubicacion} />
+        <PayButton sucursal={sucursal} ubicacion={ubicacion} />
       </aside>
     </div>
   )

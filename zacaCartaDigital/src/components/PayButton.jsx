@@ -3,23 +3,20 @@ import { WHATSAPP_NUMBER } from '../config'
 import { useCart } from '../context/useCart'
 import { buildWhatsAppMessage } from '../utils/buildWhatsAppMessage'
 
-function PayButton({ tipoPedido, sucursal, ubicacion }) {
+function PayButton({ sucursal, ubicacion }) {
   const { items, subtotal, tipPercentage, tipAmount, total, clearCart } = useCart()
   const [wasSent, setWasSent] = useState(false)
 
   let missingRequirement = ''
   if (items.length === 0) missingRequirement = 'Agregá al menos un producto para continuar.'
-  else if (tipoPedido === 'delivery' && !ubicacion) missingRequirement = 'Elegí tu ubicación para continuar.'
-  else if (tipoPedido === 'delivery' && !sucursal) missingRequirement = 'La ubicación está fuera de la cobertura disponible.'
-  else if (tipoPedido === 'retiro' && !sucursal) missingRequirement = 'Elegí una sucursal para continuar.'
-  else if (!tipoPedido) missingRequirement = 'Elegí una modalidad de pedido para continuar.'
+  else if (!ubicacion) missingRequirement = 'Elegí tu ubicación para continuar.'
+  else if (!sucursal) missingRequirement = 'La ubicación está fuera de la cobertura disponible.'
 
   function handlePay() {
     if (missingRequirement) return
 
     const message = buildWhatsAppMessage({
       items,
-      tipoPedido,
       sucursal,
       ubicacion,
       porcentajePropina: tipPercentage,
