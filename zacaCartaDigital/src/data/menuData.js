@@ -5,7 +5,7 @@ export const menuSections = [
     title: 'Pizzas',
     items: ['Muzzarella', 'Fugazzeta', '4 Quesos', 'Napolitana', 'Peperoni', 'Hawaiana', 'Mexicana'].map((name, index) => ({
       name,
-      price: [9500, 11200, 12800, 11000, 10500, 11800, 12500][index],
+      price: [180, 210, 250, 220, 225, 230, 240][index],
     })),
   },
   {
@@ -14,7 +14,7 @@ export const menuSections = [
     title: 'Empanadas',
     items: ['Criolla', 'Carne picante', 'Pollo al verdeo', 'Pollo y hongos', 'Pollo y calabaza', 'Jamón y queso', 'Verduras', '4 Quesos', 'Caprese', 'Bondiola BBQ', 'Cheeseburger', 'Cebolla y queso'].map((name, index) => ({
       name,
-      price: [1800, 2100, 1900, 2200, 1950, 1800, 1750, 2100, 2000, 2400, 2450, 1900][index],
+      price: [35, 42, 39, 43, 40, 38, 35, 45, 40, 48, 50, 39][index],
     })),
   },
   {
@@ -22,12 +22,12 @@ export const menuSections = [
     number: '03',
     title: 'Calzones',
     items: [
-      { name: 'Jamón y queso', price: 10800 },
-      { name: 'Caprese', price: 11200 },
-      { name: 'Napolitano', description: 'Jamón, queso, tomate y ajo', price: 11500 },
-      { name: 'Fugazzeta', description: 'Cebolla y queso', price: 11300 },
-      { name: 'EntreNos', description: 'Pollo, champiñones y queso', price: 12900 },
-      { name: 'Verduras', description: 'Espinaca, calabacín, cebolla, pimientos, salsa blanca y queso', price: 11000 },
+      { name: 'Jamón y queso', price: 145 },
+      { name: 'Caprese', price: 150 },
+      { name: 'Napolitano', description: 'Jamón, queso, tomate y ajo', price: 155 },
+      { name: 'Fugazzeta', description: 'Cebolla y queso', price: 150 },
+      { name: 'EntreNos', description: 'Pollo, champiñones y queso', price: 180 },
+      { name: 'Verduras', description: 'Espinaca, calabacín, cebolla, pimientos, salsa blanca y queso', price: 150 },
     ],
   },
   {
@@ -37,12 +37,12 @@ export const menuSections = [
     subtitle: 'Res o pollo',
     note: 'Popurrí de Milanesas — para 2 personas, elegí 4 sabores',
     items: [
-      { name: 'Clásica', description: 'De entraña, de molleja de res o de bondiola de cerdo', price: 14500 },
-      { name: 'Napolitana', price: 15800 },
-      { name: 'Fugazzeta', price: 15600 },
-      { name: 'Suiza', price: 16000 },
-      { name: 'Jamón y queso', price: 15000 },
-      { name: 'Cheddar', price: 14900 },
+      { name: 'Clásica', description: 'De entraña, de molleja de res o de bondiola de cerdo', price: 160 },
+      { name: 'Napolitana', price: 190 },
+      { name: 'Fugazzeta', price: 180 },
+      { name: 'Suiza', price: 195 },
+      { name: 'Jamón y queso', price: 175 },
+      { name: 'Cheddar', price: 170 },
     ],
     footnote: 'Todas vienen con papas fritas, camote frito, puré de papas o puré de calabaza, a elección.',
   },
@@ -53,7 +53,7 @@ export const menuSections = [
     subtitle: 'Orden de 3',
     items: ['Asada', 'Pollo', 'Cerdo', 'Arrachera', 'Chorizo'].map((name, index) => ({
       name,
-      price: [10500, 9500, 9200, 12500, 9800][index],
+      price: [105, 95, 90, 130, 100][index],
     })),
   },
   {
@@ -62,7 +62,7 @@ export const menuSections = [
     title: 'Quesadillas',
     items: ['Queso', 'Asada', 'Pollo', 'Cerdo', 'Arrachera', 'Chorizo'].map((name, index) => ({
       name,
-      price: [8000, 9800, 9400, 9300, 11500, 9700][index],
+      price: [75, 100, 95, 90, 120, 100][index],
     })),
   },
   {
@@ -72,9 +72,9 @@ export const menuSections = [
     items: [
       ...['Asada', 'Pollo', 'Cerdo', 'Arrachera', 'Chorizo'].map((name, index) => ({
         name,
-        price: [9400, 9000, 8900, 11600, 9100][index],
+        price: [110, 105, 100, 140, 110][index],
       })),
-      { name: 'Vegetariano', description: 'Frijoles, arroz, verduras y queso', price: 8500 },
+      { name: 'Vegetariano', description: 'Frijoles, arroz, verduras y queso', price: 95 },
     ],
   },
 ]

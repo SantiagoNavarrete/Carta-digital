@@ -2,10 +2,10 @@ import CartItem from './CartItem'
 import TipSelector from './TipSelector'
 import PayButton from './PayButton'
 import { useCart } from '../context/useCart'
-import { formatARS } from '../utils/currency'
+import { formatMXN } from '../utils/currency'
 
-function CartDrawer({ sucursal, ubicacion }) {
-  const { items, subtotal, costoDelivery, zonaSeleccionada, total, closeCart, isCartOpen } = useCart()
+function CartDrawer({ sucursal, ubicacion, whatsappNumber }) {
+  const { items, subtotal, discountAmount, costoDelivery, zonaSeleccionada, total, closeCart, isCartOpen } = useCart()
   if (!isCartOpen) return null
 
   return (
@@ -24,19 +24,20 @@ function CartDrawer({ sucursal, ubicacion }) {
           <>
             <ul className="cart-items-list">{items.map((item) => <CartItem key={item.id} item={item} />)}</ul>
             <div className="cart-totals">
-              <div className="cart-total-line"><span>Subtotal</span><strong>{formatARS(subtotal)}</strong></div>
+              <div className="cart-total-line"><span>Subtotal</span><strong>{formatMXN(subtotal)}</strong></div>
+              {discountAmount > 0 && <div className="cart-total-line"><span>Descuento de promoción</span><strong>−{formatMXN(discountAmount)}</strong></div>}
               <div className="cart-total-line">
                 <span>{zonaSeleccionada ? `Envío (${zonaSeleccionada})` : 'Envío'}</span>
-                <strong>{zonaSeleccionada ? formatARS(costoDelivery) : 'Elegí una zona'}</strong>
+                <strong>{zonaSeleccionada ? formatMXN(costoDelivery) : 'Elegí una zona'}</strong>
               </div>
               <TipSelector />
-              <div className="cart-total-line cart-grand-total"><span>Total</span><strong>{formatARS(total)}</strong></div>
+              <div className="cart-total-line cart-grand-total"><span>Total</span><strong>{formatMXN(total)}</strong></div>
             </div>
           </>
         ) : (
           <p className="cart-empty">Todavía no agregaste productos.</p>
         )}
-        <PayButton sucursal={sucursal} ubicacion={ubicacion} />
+        <PayButton sucursal={sucursal} ubicacion={ubicacion} whatsappNumber={whatsappNumber} />
       </aside>
     </div>
   )

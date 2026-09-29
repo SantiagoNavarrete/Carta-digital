@@ -3,9 +3,9 @@ import { HORARIOS } from '../config'
 import useOpenStatus from '../useOpenStatus'
 import InfoModal from './InfoModal'
 
-function OpenStatusButton({ branches }) {
+function OpenStatusButton({ branches, horarios }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const schedule = branches[0]?.horarios ?? HORARIOS
+  const schedule = horarios ?? branches[0]?.horarios ?? HORARIOS
   const status = useOpenStatus(schedule)
 
   return (

@@ -1,5 +1,7 @@
+import { formatMXN } from './currency'
+
 function formatAmount(amount) {
-  return `$${Number(amount || 0).toLocaleString('es-AR')}`
+  return formatMXN(Number(amount || 0))
 }
 
 function getItemComplements(item) {

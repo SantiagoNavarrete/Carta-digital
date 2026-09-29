@@ -1,7 +1,6 @@
-export function formatARS(amount) {
-  return new Intl.NumberFormat('es-AR', {
+export function formatMXN(amount) {
+  return Number(amount || 0).toLocaleString('es-MX', {
     style: 'currency',
-    currency: 'ARS',
-    maximumFractionDigits: 0,
-  }).format(amount)
+    currency: 'MXN',
+  })
 }

@@ -1,9 +1,8 @@
 import { useState } from 'react'
-import { WHATSAPP_NUMBER } from '../config'
 import { useCart } from '../context/useCart'
 import { buildWhatsAppMessage } from '../utils/buildWhatsAppMessage'
 
-function PayButton({ sucursal, ubicacion }) {
+function PayButton({ sucursal, ubicacion, whatsappNumber }) {
   const { items, subtotal, zonaSeleccionada, costoDelivery, tipPercentage, tipAmount, total, clearCart } = useCart()
   const [wasSent, setWasSent] = useState(false)
 
@@ -25,7 +24,7 @@ function PayButton({ sucursal, ubicacion }) {
       propina: tipAmount,
       total,
     })
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
+    const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
     window.open(url, '_blank', 'noopener,noreferrer')
     setWasSent(true)
   }

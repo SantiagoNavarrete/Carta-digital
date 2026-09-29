@@ -1,5 +1,3 @@
-import { FACEBOOK_URL, INSTAGRAM_URL } from '../config'
-
 function InstagramIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -18,13 +16,13 @@ function FacebookIcon() {
   )
 }
 
-function SocialLinks() {
+function SocialLinks({ instagramUrl, facebookUrl }) {
   return (
     <nav className="social-links" aria-label="Redes sociales">
-      <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label="Visitar Instagram de EntreNos">
+      <a href={instagramUrl || undefined} target="_blank" rel="noopener noreferrer" aria-label="Visitar Instagram de EntreNos">
         <InstagramIcon />
       </a>
-      <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" aria-label="Visitar Facebook de EntreNos">
+      <a href={facebookUrl || undefined} target="_blank" rel="noopener noreferrer" aria-label="Visitar Facebook de EntreNos">
         <FacebookIcon />
       </a>
     </nav>

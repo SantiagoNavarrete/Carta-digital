@@ -1,18 +1,21 @@
 import { useReducer } from 'react'
 import { CartContext, cartReducer, initialCartState } from './cartState'
+import { getPromoDiscount } from '../utils/promotions'
 
-function CartProvider({ children }) {
+function CartProvider({ children, promotions = [] }) {
   const [state, dispatch] = useReducer(cartReducer, initialCartState)
   const itemCount = state.items.reduce((total, item) => total + item.quantity, 0)
   const subtotal = state.items.reduce((total, item) => total + item.price * item.quantity, 0)
+  const discountAmount = Math.min(subtotal, getPromoDiscount(state.items, promotions))
   const tipAmount = Math.round(subtotal * state.tipPercentage / 100)
 
   const value = {
     ...state,
     itemCount,
     subtotal,
+    discountAmount,
     tipAmount,
-    total: subtotal + state.costoDelivery + tipAmount,
+    total: subtotal - discountAmount + state.costoDelivery + tipAmount,
     addItem: (item, quantity) => dispatch({
       type: 'add-item',
       item: { ...item, quantity },

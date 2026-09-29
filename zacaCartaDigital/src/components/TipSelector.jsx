@@ -1,6 +1,6 @@
 import { tipPercentages } from '../data/cartConfig'
 import { useCart } from '../context/useCart'
-import { formatARS } from '../utils/currency'
+import { formatMXN } from '../utils/currency'
 
 function TipSelector() {
   const { tipPercentage, setTipPercentage, tipAmount } = useCart()
@@ -21,7 +21,7 @@ function TipSelector() {
           </button>
         ))}
       </div>
-      <p className="tip-amount">Propina ({tipPercentage}%): <strong>{formatARS(tipAmount)}</strong></p>
+      <p className="tip-amount">Propina ({tipPercentage}%): <strong>{formatMXN(tipAmount)}</strong></p>
     </fieldset>
   )
 }

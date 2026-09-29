@@ -1,6 +1,7 @@
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { branches } from './data/branches'
-import { menuSections, complements } from './data/menuData'
+import { menuSections as defaultMenuSections, complements } from './data/menuData'
+import { FACEBOOK_URL, HORARIOS, INSTAGRAM_URL, WHATSAPP_NUMBER } from './config'
 import BranchSelector from './components/BranchSelector'
 import CartDrawer from './components/CartDrawer'
 import CartIcon from './components/CartIcon'
@@ -11,8 +12,12 @@ import LocationPicker from './components/LocationPicker'
 import WelcomeSplash from './components/WelcomeSplash'
 import SocialLinks from './components/SocialLinks'
 import { useCart } from './context/useCart'
+import CartProvider from './context/CartProvider'
 import useFlyToCart from './useFlyToCart'
-import { formatARS } from './utils/currency'
+import { formatMXN } from './utils/currency'
+import { isPromoCurrent } from './utils/promotions'
+import useAdminData from './hooks/useAdminData'
+import Admin from './components/Admin'
 import './App.css'
 
 function ChefHat() {
@@ -25,14 +30,14 @@ function ChefHat() {
   )
 }
 
-function Header({ search, onSearchChange }) {
+function Header({ search, onSearchChange, instagramUrl, facebookUrl }) {
   return (
     <header className="site-header">
       <div className="brand-mark"><ChefHat /></div>
       <p className="header-kicker">COCINA MEXICANA · ITALIANA · ARGENTINA</p>
       <h1>EntreNos</h1>
       <p className="tagline">Más que comida, buenos momentos</p>
-      <SocialLinks />
+      <SocialLinks instagramUrl={instagramUrl} facebookUrl={facebookUrl} />
       <div className="flag-rule" aria-hidden="true"><span /><span /><span /></div>
       <label className="search-box">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 5 5" /></svg>
@@ -61,7 +66,7 @@ function MenuItem({ item, sectionId, flyToCart, showDivider }) {
           {item.description && <span className="item-description">{item.description}</span>}
         </div>
         <span className="dot-leader" aria-hidden="true" />
-        <span className="item-price">{formatARS(item.price)}</span>
+        <span className="item-price">{formatMXN(item.price)}</span>
         <div className="menu-item-actions">
           <div className="quantity-control" aria-label={`Cantidad de ${item.name}`}>
             <button type="button" onClick={() => setQuantity((value) => Math.max(1, value - 1))} aria-label={`Disminuir cantidad de ${item.name}`}>−</button>
@@ -72,7 +77,7 @@ function MenuItem({ item, sectionId, flyToCart, showDivider }) {
             type="button"
             className="add-to-cart"
             onClick={(event) => {
-              const itemToAdd = { id: `${sectionId}:${item.name}`, name: item.name, price: item.price }
+              const itemToAdd = { id: item.id ?? `${sectionId}:${item.name}`, name: item.name, price: item.price, categoria: item.categoria }
               flyToCart(event.currentTarget, () => addItem(itemToAdd, quantity))
             }}
           >
@@ -130,19 +135,65 @@ function Complements() {
   )
 }
 
-function Footer() {
+function Footer({ instagramUrl, facebookUrl }) {
   return (
     <footer className="site-footer">
       <span className="footer-tagline">Pasión por la buena comida <span aria-label="amor">♥</span></span>
-      <SocialLinks />
+      <SocialLinks instagramUrl={instagramUrl} facebookUrl={facebookUrl} />
     </footer>
   )
 }
 
-function App() {
+function PromoBanner({ promos }) {
+  const [activeIndex, setActiveIndex] = useState(0)
+  useEffect(() => {
+    if (promos.length < 2) return undefined
+    const interval = window.setInterval(() => setActiveIndex((index) => (index + 1) % promos.length), 6000)
+    return () => window.clearInterval(interval)
+  }, [promos.length])
+  if (promos.length === 0) return null
+  const promo = promos[activeIndex % promos.length]
+  return (
+    <aside className="promo-banner" aria-label="Promociones vigentes">
+      <div><span className="promo-banner-label">PROMOCIÓN</span><strong>{promo.titulo}</strong><span>{promo.descripcion}</span></div>
+      {promos.length > 1 && <div className="promo-banner-controls"><button type="button" aria-label="Promoción anterior" onClick={() => setActiveIndex((index) => (index - 1 + promos.length) % promos.length)}>‹</button><span>{activeIndex + 1} / {promos.length}</span><button type="button" aria-label="Siguiente promoción" onClick={() => setActiveIndex((index) => (index + 1) % promos.length)}>›</button></div>}
+    </aside>
+  )
+}
+
+function createMenuSections(products) {
+  const activeProducts = products.filter((product) => product.activo).sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
+  const categories = [...new Set(activeProducts.map((product) => product.categoria).filter(Boolean))]
+  return categories.map((category, index) => {
+    const original = defaultMenuSections.find((section) => section.title === category)
+    return {
+      id: category.toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+      number: original?.number ?? String(index + 1).padStart(2, '0'),
+      title: category,
+      subtitle: original?.subtitle,
+      note: original?.note,
+      footnote: original?.footnote,
+      items: activeProducts.filter((product) => product.categoria === category).map((product) => ({
+        id: product.id,
+        name: product.nombre,
+        price: Number(product.precio || 0),
+        description: product.descripcion,
+        categoria: product.categoria,
+      })),
+    }
+  })
+}
+
+function PublicMenu({ data, activePromos }) {
   const cartIconRef = useRef(null)
   const { flyToCart, flights, finishFlight } = useFlyToCart(cartIconRef)
   const { zonaSeleccionada, setDeliveryZone } = useCart()
+  const menuSections = createMenuSections(data.productos)
+  const config = data.config ?? {}
+  const whatsappNumber = config.whatsappNumber || WHATSAPP_NUMBER
+  const horarios = config.horarios || HORARIOS
+  const instagramUrl = config.instagramUrl || INSTAGRAM_URL
+  const facebookUrl = config.facebookUrl || FACEBOOK_URL
   const [isWelcomeVisible, setIsWelcomeVisible] = useState(true)
   const [search, setSearch] = useState('')
   const [deliveryLocation, setDeliveryLocation] = useState(null)
@@ -166,7 +217,10 @@ function App() {
       <Header
         search={search}
         onSearchChange={setSearch}
+        instagramUrl={instagramUrl}
+        facebookUrl={facebookUrl}
       />
+      <PromoBanner promos={activePromos} />
       <nav className="category-nav" aria-label="Categorías del menú">
         {visibleSections.map((section) => (
           <a key={section.id} href={`#${section.id}`} aria-disabled={section.items.length === 0} className={section.items.length === 0 ? 'is-disabled' : ''}>
@@ -193,6 +247,8 @@ function App() {
           </p>
           <DeliveryZoneSelector
             zonaSeleccionada={zonaSeleccionada}
+            zones={data.zonasDelivery}
+            whatsappNumber={whatsappNumber}
             onSelectZone={(zone) => setDeliveryZone(zone?.zona ?? null, zone?.costo ?? 0)}
           />
           <div className="delivery-grid">
@@ -207,17 +263,28 @@ function App() {
         </section>
         <Complements />
       </main>
-      <Footer />
+      <Footer instagramUrl={instagramUrl} facebookUrl={facebookUrl} />
       <CartIcon ref={cartIconRef} />
       <CartDrawer
         sucursal={assignedBranch}
         ubicacion={deliveryLocation}
+        whatsappNumber={whatsappNumber}
       />
       {flights.map((flight) => <FlyingDot key={flight.id} flight={flight} onFinish={finishFlight} />)}
       </div>
-      <OpenStatusButton branches={branches} />
+      <OpenStatusButton branches={branches} horarios={horarios} />
     </>
   )
+}
+
+function App() {
+  const data = useAdminData()
+  if (window.location.pathname.startsWith('/admin')) return <Admin data={data} />
+  if (data.loading) return <main className="firebase-state" role="status">Cargando la carta...</main>
+  if (data.error) return <main className="firebase-state firebase-error" role="alert"><h1>No pudimos cargar la carta</h1><p>{data.error}</p></main>
+
+  const activePromos = data.promociones.filter((promo) => isPromoCurrent(promo))
+  return <CartProvider promotions={activePromos}><PublicMenu data={data} activePromos={activePromos} /></CartProvider>
 }
 
 export default App

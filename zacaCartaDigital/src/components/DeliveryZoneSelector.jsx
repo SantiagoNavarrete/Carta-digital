@@ -1,19 +1,17 @@
 import { useMemo, useRef, useState } from 'react'
-import { WHATSAPP_NUMBER } from '../config'
-import { ZONAS_DELIVERY } from '../data/zonasDelivery'
-import { formatARS } from '../utils/currency'
+import { formatMXN } from '../utils/currency'
 
-function DeliveryZoneSelector({ zonaSeleccionada, onSelectZone }) {
+function DeliveryZoneSelector({ zonaSeleccionada, onSelectZone, zones, whatsappNumber }) {
   const [query, setQuery] = useState(zonaSeleccionada ?? '')
   const [isOpen, setIsOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const inputRef = useRef(null)
   const normalizedQuery = query.trim().toLocaleLowerCase('es')
-  const filteredZones = useMemo(() => ZONAS_DELIVERY.filter(({ zona }) =>
+  const filteredZones = useMemo(() => zones.filter(({ zona }) =>
     zona.toLocaleLowerCase('es').includes(normalizedQuery),
-  ), [normalizedQuery])
+  ), [normalizedQuery, zones])
   const whatsappMessage = encodeURIComponent('Hola, no encuentro mi zona en la lista. ¿Me confirman el costo de envío?')
-  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappMessage}`
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`
 
   function selectZone(zone) {
     setQuery(zone.zona)
@@ -104,7 +102,7 @@ function DeliveryZoneSelector({ zonaSeleccionada, onSelectZone }) {
                 onClick={() => selectZone(zone)}
               >
                 <span>{zone.zona}</span>
-                <strong>{formatARS(zone.costo)}</strong>
+                <strong>{formatMXN(zone.costo)}</strong>
               </li>
             )) : (
               <li className="delivery-zone-empty" role="status">
@@ -118,7 +116,7 @@ function DeliveryZoneSelector({ zonaSeleccionada, onSelectZone }) {
         <p className="delivery-zone-selected" role="status">
           <span>Zona seleccionada</span>
           <strong>{zonaSeleccionada}</strong>
-          <b>{formatARS(ZONAS_DELIVERY.find(({ zona }) => zona === zonaSeleccionada)?.costo)}</b>
+          <b>{formatMXN(zones.find(({ zona }) => zona === zonaSeleccionada)?.costo)}</b>
         </p>
       )}
       <a className="delivery-zone-help" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
