@@ -12,7 +12,7 @@ function CartProvider({ children }) {
     itemCount,
     subtotal,
     tipAmount,
-    total: subtotal + tipAmount,
+    total: subtotal + state.costoDelivery + tipAmount,
     addItem: (item, quantity) => dispatch({
       type: 'add-item',
       item: { ...item, quantity },
@@ -21,6 +21,7 @@ function CartProvider({ children }) {
     removeItem: (id) => dispatch({ type: 'remove-item', id }),
     clearCart: () => dispatch({ type: 'clear-cart' }),
     setTipPercentage: (percentage) => dispatch({ type: 'set-tip', percentage }),
+    setDeliveryZone: (zona, costo = 0) => dispatch({ type: 'set-delivery-zone', zona, costo }),
     openCart: () => dispatch({ type: 'open-cart' }),
     closeCart: () => dispatch({ type: 'close-cart' }),
   }

@@ -5,7 +5,7 @@ import { useCart } from '../context/useCart'
 import { formatARS } from '../utils/currency'
 
 function CartDrawer({ sucursal, ubicacion }) {
-  const { items, subtotal, total, closeCart, isCartOpen } = useCart()
+  const { items, subtotal, costoDelivery, zonaSeleccionada, total, closeCart, isCartOpen } = useCart()
   if (!isCartOpen) return null
 
   return (
@@ -25,6 +25,10 @@ function CartDrawer({ sucursal, ubicacion }) {
             <ul className="cart-items-list">{items.map((item) => <CartItem key={item.id} item={item} />)}</ul>
             <div className="cart-totals">
               <div className="cart-total-line"><span>Subtotal</span><strong>{formatARS(subtotal)}</strong></div>
+              <div className="cart-total-line">
+                <span>{zonaSeleccionada ? `Envío (${zonaSeleccionada})` : 'Envío'}</span>
+                <strong>{zonaSeleccionada ? formatARS(costoDelivery) : 'Elegí una zona'}</strong>
+              </div>
               <TipSelector />
               <div className="cart-total-line cart-grand-total"><span>Total</span><strong>{formatARS(total)}</strong></div>
             </div>

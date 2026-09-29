@@ -14,6 +14,8 @@ export function buildWhatsAppMessage({
   items,
   sucursal,
   ubicacion,
+  zonaSeleccionada,
+  costoDelivery,
   porcentajePropina,
   subtotal,
   propina,
@@ -24,11 +26,15 @@ export function buildWhatsAppMessage({
     '',
     '📦 *Modalidad:* Delivery',
     `🏪 *Sucursal:* ${sucursal?.name ?? 'Sin sucursal seleccionada'}`,
+    `🏘️ *Zona de entrega:* ${zonaSeleccionada}`,
+    `🛵 *Envío (${zonaSeleccionada}):* ${formatAmount(costoDelivery)}`,
   ]
 
-  const address = ubicacion?.address || `${ubicacion?.latitude ?? ''}, ${ubicacion?.longitude ?? ''}`
-  lines.push(`📍 *Dirección de entrega:* ${address}`)
-  lines.push(`🗺️ *Ubicación:* https://www.google.com/maps?q=${ubicacion?.latitude},${ubicacion?.longitude}`)
+  if (ubicacion) {
+    const address = ubicacion.address || `${ubicacion.latitude}, ${ubicacion.longitude}`
+    lines.push(`📍 *Dirección de entrega:* ${address}`)
+    lines.push(`🗺️ *Ubicación:* https://www.google.com/maps?q=${ubicacion.latitude},${ubicacion.longitude}`)
+  }
 
   lines.push('', '🛒 *Pedido:*')
   items.forEach((item) => {

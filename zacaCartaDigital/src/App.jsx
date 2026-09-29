@@ -6,6 +6,7 @@ import CartDrawer from './components/CartDrawer'
 import CartIcon from './components/CartIcon'
 import FlyingDot from './components/FlyingDot'
 import OpenStatusButton from './components/OpenStatusButton'
+import DeliveryZoneSelector from './components/DeliveryZoneSelector'
 import LocationPicker from './components/LocationPicker'
 import WelcomeSplash from './components/WelcomeSplash'
 import SocialLinks from './components/SocialLinks'
@@ -141,15 +142,12 @@ function Footer() {
 function App() {
   const cartIconRef = useRef(null)
   const { flyToCart, flights, finishFlight } = useFlyToCart(cartIconRef)
+  const { zonaSeleccionada, setDeliveryZone } = useCart()
   const [isWelcomeVisible, setIsWelcomeVisible] = useState(true)
   const [search, setSearch] = useState('')
   const [deliveryLocation, setDeliveryLocation] = useState(null)
   const [preferredBranchId, setPreferredBranchId] = useState('')
   const [assignedBranch, setAssignedBranch] = useState(null)
-  const [confirmedLocationKey, setConfirmedLocationKey] = useState(null)
-  const locationKey = deliveryLocation ? `${deliveryLocation.latitude},${deliveryLocation.longitude}` : null
-  const selectionKey = locationKey && assignedBranch ? `${locationKey},${assignedBranch.id}` : null
-  const orderReady = Boolean(selectionKey) && confirmedLocationKey === selectionKey
   const normalizedSearch = search.trim().toLocaleLowerCase('es')
   const visibleSections = menuSections.map((section) => ({
     ...section,
@@ -188,36 +186,24 @@ function App() {
         <section className="delivery-section" aria-labelledby="delivery-title">
           <div className="section-heading">
             <span className="section-index">00</span>
-            <h2 id="delivery-title">¿Dónde te lo llevamos?</h2>
+            <h2 id="delivery-title">Elegí tu zona de entrega</h2>
           </div>
           <p className="delivery-intro">
-            Elegí el punto de entrega y verificamos qué sucursal puede atenderte.
+            Seleccioná tu zona para calcular el costo de envío. El mapa es opcional y sirve como referencia de ubicación.
           </p>
+          <DeliveryZoneSelector
+            zonaSeleccionada={zonaSeleccionada}
+            onSelectZone={(zone) => setDeliveryZone(zone?.zona ?? null, zone?.costo ?? 0)}
+          />
           <div className="delivery-grid">
             <LocationPicker location={deliveryLocation} onLocationChange={setDeliveryLocation} />
             <BranchSelector
               location={deliveryLocation}
               preferredBranchId={preferredBranchId}
-              onPreferredBranchChange={(branchId) => {
-                setPreferredBranchId(branchId)
-                setConfirmedLocationKey(null)
-              }}
+              onPreferredBranchChange={setPreferredBranchId}
               onAssignmentChange={setAssignedBranch}
             />
           </div>
-          <button
-            type="button"
-            className="delivery-continue"
-            disabled={!selectionKey}
-            onClick={() => setConfirmedLocationKey(selectionKey)}
-          >
-            Continuar con el pedido
-          </button>
-          {orderReady && (
-            <p className="delivery-saved" role="status">
-              Ubicación guardada: {deliveryLocation.address || `${deliveryLocation.latitude.toFixed(5)}, ${deliveryLocation.longitude.toFixed(5)}`} · {assignedBranch.name}.
-            </p>
-          )}
         </section>
         <Complements />
       </main>

@@ -4,13 +4,12 @@ import { useCart } from '../context/useCart'
 import { buildWhatsAppMessage } from '../utils/buildWhatsAppMessage'
 
 function PayButton({ sucursal, ubicacion }) {
-  const { items, subtotal, tipPercentage, tipAmount, total, clearCart } = useCart()
+  const { items, subtotal, zonaSeleccionada, costoDelivery, tipPercentage, tipAmount, total, clearCart } = useCart()
   const [wasSent, setWasSent] = useState(false)
 
   let missingRequirement = ''
   if (items.length === 0) missingRequirement = 'Agregá al menos un producto para continuar.'
-  else if (!ubicacion) missingRequirement = 'Elegí tu ubicación para continuar.'
-  else if (!sucursal) missingRequirement = 'La ubicación está fuera de la cobertura disponible.'
+  else if (!zonaSeleccionada) missingRequirement = 'Elegí tu zona de entrega para continuar.'
 
   function handlePay() {
     if (missingRequirement) return
@@ -19,6 +18,8 @@ function PayButton({ sucursal, ubicacion }) {
       items,
       sucursal,
       ubicacion,
+      zonaSeleccionada,
+      costoDelivery,
       porcentajePropina: tipPercentage,
       subtotal,
       propina: tipAmount,
