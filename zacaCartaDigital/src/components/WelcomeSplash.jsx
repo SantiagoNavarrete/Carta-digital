@@ -4,8 +4,8 @@ function WelcomeSplash({ onComplete }) {
   const [isLeaving, setIsLeaving] = useState(false)
 
   useEffect(() => {
-    const exitTimer = window.setTimeout(() => setIsLeaving(true), 3000)
-    const completeTimer = window.setTimeout(() => onComplete(false), 3450)
+    const exitTimer = window.setTimeout(() => setIsLeaving(true), 1500)
+    const completeTimer = window.setTimeout(() => onComplete(false), 3000)
 
     return () => {
       window.clearTimeout(exitTimer)
