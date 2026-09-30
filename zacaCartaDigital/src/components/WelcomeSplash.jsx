@@ -1,15 +1,30 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 function WelcomeSplash({ onComplete }) {
   const [isLeaving, setIsLeaving] = useState(false)
+  const hasStartedLeaving = useRef(false)
+  const exitTimer = useRef(null)
+  const completeTimer = useRef(null)
+
+  const beginExit = () => {
+    if (hasStartedLeaving.current) return
+    hasStartedLeaving.current = true
+    window.clearTimeout(exitTimer.current)
+    window.clearTimeout(completeTimer.current)
+    setIsLeaving(true)
+    completeTimer.current = window.setTimeout(() => onComplete(false), 450)
+  }
 
   useEffect(() => {
-    const exitTimer = window.setTimeout(() => setIsLeaving(true), 1500)
-    const completeTimer = window.setTimeout(() => onComplete(false), 3000)
+    exitTimer.current = window.setTimeout(() => {
+      hasStartedLeaving.current = true
+      setIsLeaving(true)
+    }, 3550)
+    completeTimer.current = window.setTimeout(() => onComplete(false), 4000)
 
     return () => {
-      window.clearTimeout(exitTimer)
-      window.clearTimeout(completeTimer)
+      window.clearTimeout(exitTimer.current)
+      window.clearTimeout(completeTimer.current)
     }
   }, [onComplete])
 
@@ -41,6 +56,7 @@ function WelcomeSplash({ onComplete }) {
         </svg>
         <p className="welcome-tagline">COCINA MEXICANA · ITALIANA · ARGENTINA</p>
       </main>
+      <button className="welcome-skip" type="button" onClick={beginExit}>Ver carta <span aria-hidden="true">→</span></button>
     </div>
   )
 }

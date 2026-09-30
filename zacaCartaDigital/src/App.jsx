@@ -18,7 +18,24 @@ import { formatMXN } from './utils/currency'
 import { isPromoCurrent } from './utils/promotions'
 import useAdminData from './hooks/useAdminData'
 import Admin from './components/Admin'
+import milanesasImage from './assets/fotosStock/milanesas.jfif'
+import pizzaImage from './assets/fotosStock/pizza.jfif'
+import quesadillasImage from './assets/fotosStock/quesadillas.jfif'
+import tacosImage from './assets/fotosStock/tacos.webp'
+import empanadasImage from './assets/fotosStock/empanadas.png'
+import burritosImage from './assets/fotosStock/burritos.png'
+import calzonesImage from './assets/fotosStock/calzones.jpg'
 import './App.css'
+
+const categoryImages = {
+  Empanadas: empanadasImage,
+  Calzones: calzonesImage,
+  Milanesas: milanesasImage,
+  Pizzas: pizzaImage,
+  Quesadillas: quesadillasImage,
+  Tacos: tacosImage,
+  Burritos: burritosImage,
+}
 
 function ChefHat() {
   return (
@@ -105,12 +122,21 @@ function SectionDivider() {
 }
 
 function CategorySection({ section, flyToCart }) {
+  const categoryImage = categoryImages[section.title]
+
   return (
     <section className="category-section" id={section.id}>
       <div className="section-heading">
-        <span className="section-index">{section.number}</span>
-        <h2>{section.title}</h2>
-        {section.subtitle && <span className="section-subtitle">{section.subtitle}</span>}
+        <div className="section-heading-copy">
+          <span className="section-index">{section.number}</span>
+          <div className="section-title-copy">
+            <h2>{section.title}</h2>
+            {section.subtitle && <span className="section-subtitle">{section.subtitle}</span>}
+          </div>
+        </div>
+        <div className={`category-image${categoryImage ? '' : ' is-placeholder'}`} aria-hidden="true">
+          {categoryImage ? <img src={categoryImage} alt="" /> : <ChefHat />}
+        </div>
       </div>
       {section.note && <p className="section-note">{section.note}</p>}
       <ul className="menu-list">{section.items.map((item, index) => <MenuItem key={item.name} item={item} sectionId={section.id} flyToCart={flyToCart} showDivider={index < section.items.length - 1} />)}</ul>
@@ -188,7 +214,9 @@ function PublicMenu({ data, activePromos }) {
   const cartIconRef = useRef(null)
   const { flyToCart, flights, finishFlight } = useFlyToCart(cartIconRef)
   const { zonaSeleccionada, setDeliveryZone } = useCart()
-  const menuSections = createMenuSections(data.productos)
+  const menuSections = data.loading
+    ? defaultMenuSections.map((section) => ({ ...section, items: [] }))
+    : createMenuSections(data.productos)
   const config = data.config ?? {}
   const whatsappNumber = config.whatsappNumber || WHATSAPP_NUMBER
   const horarios = config.horarios || HORARIOS
@@ -206,7 +234,9 @@ function PublicMenu({ data, activePromos }) {
       `${item.name} ${item.description ?? ''}`.toLocaleLowerCase('es').includes(normalizedSearch),
     ),
   }))
-  const menuSectionsToShow = visibleSections.filter((section) => section.items.length > 0)
+  const menuSectionsToShow = data.loading
+    ? visibleSections
+    : visibleSections.filter((section) => section.items.length > 0)
 
   return (
     <>
@@ -280,7 +310,6 @@ function PublicMenu({ data, activePromos }) {
 function App() {
   const data = useAdminData()
   if (window.location.pathname.startsWith('/admin')) return <Admin data={data} />
-  if (data.loading) return <main className="firebase-state" role="status">Cargando la carta...</main>
   if (data.error) return <main className="firebase-state firebase-error" role="alert"><h1>No pudimos cargar la carta</h1><p>{data.error}</p></main>
 
   const activePromos = data.promociones.filter((promo) => isPromoCurrent(promo))
