@@ -5,6 +5,7 @@ export const CartContext = createContext(null)
 export const initialCartState = {
   items: [],
   tipPercentage: 0,
+  metodoPago: null,
   zonaSeleccionada: null,
   costoDelivery: 0,
   isCartOpen: false,
@@ -32,9 +33,11 @@ export function cartReducer(state, action) {
     case 'remove-item':
       return { ...state, items: state.items.filter((item) => item.id !== action.id) }
     case 'clear-cart':
-      return { ...state, items: [], tipPercentage: 0 }
+      return { ...state, items: [], tipPercentage: 0, metodoPago: null }
     case 'set-tip':
       return { ...state, tipPercentage: action.percentage }
+    case 'set-payment-method':
+      return { ...state, metodoPago: action.metodoPago }
     case 'set-delivery-zone':
       return {
         ...state,

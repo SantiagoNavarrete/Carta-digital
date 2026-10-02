@@ -1,5 +1,6 @@
 import CartItem from './CartItem'
 import TipSelector from './TipSelector'
+import PaymentMethodSelector from './PaymentMethodSelector'
 import PayButton from './PayButton'
 import { useCart } from '../context/useCart'
 import { formatMXN } from '../utils/currency'
@@ -32,6 +33,7 @@ function CartDrawer({ sucursal, ubicacion, whatsappNumber }) {
               </div>
               <TipSelector />
               <div className="cart-total-line cart-grand-total"><span>Total</span><strong>{formatMXN(total)}</strong></div>
+              <PaymentMethodSelector />
             </div>
           </>
         ) : (

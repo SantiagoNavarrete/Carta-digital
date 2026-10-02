@@ -1001,6 +1001,13 @@
 .tip-option.is-selected { border-color: var(--green-deep); background: var(--green-deep); color: white; }
 .tip-amount { margin: 9px 0 0; color: #65746d; font-size: 11px; }
 .tip-amount strong { color: var(--green-deep); }
+.payment-method-selector { margin: 14px 0 2px; padding: 13px 0 0; border: 0; border-top: 1px solid #e4ebe7; }
+.payment-method-selector legend { padding: 0; color: var(--green-deep); font-size: 12px; font-weight: 700; }
+.payment-method-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 10px; }
+.transfer-alias { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; padding: 10px; border: 1px solid #cfe4d5; border-radius: 4px; color: #385b47; background: #edf7ef; font-size: 11px; line-height: 1.4; }
+.transfer-alias strong { color: var(--green-deep); font-size: 12px; }
+.transfer-alias button { min-height: 30px; flex: 0 0 auto; padding: 5px 9px; border: 1px solid #a9c9b3; border-radius: 3px; color: var(--green-deep); background: #fff; font-size: 11px; font-weight: 700; cursor: pointer; }
+.transfer-alias button:focus-visible { outline: 3px solid #30bcf9; outline-offset: 2px; }
 .cart-grand-total { padding-top: 13px; border-top: 1px dashed #d6e1da; color: var(--green-deep); font-size: 16px; font-weight: 700; }
 .cart-grand-total strong { font-size: 20px; }
 

@@ -1,4 +1,11 @@
 import { formatMXN } from './currency'
+import { ALIAS_TRANSFERENCIA } from '../config'
+
+const paymentMethodLabels = {
+  efectivo: 'Efectivo',
+  transferencia: 'Transferencia',
+  tarjeta: 'Tarjeta',
+}
 
 function formatAmount(amount) {
   return formatMXN(Number(amount || 0))
@@ -18,6 +25,7 @@ export function buildWhatsAppMessage({
   ubicacion,
   zonaSeleccionada,
   costoDelivery,
+  metodoPago,
   porcentajePropina,
   subtotal,
   propina,
@@ -30,7 +38,10 @@ export function buildWhatsAppMessage({
     `🏪 *Sucursal:* ${sucursal?.name ?? 'Sin sucursal seleccionada'}`,
     `🏘️ *Zona de entrega:* ${zonaSeleccionada}`,
     `🛵 *Envío (${zonaSeleccionada}):* ${formatAmount(costoDelivery)}`,
+    `💳 *Método de pago:* ${paymentMethodLabels[metodoPago] ?? 'Sin seleccionar'}`,
   ]
+
+  if (metodoPago === 'transferencia') lines.push(`🏦 *Alias:* ${ALIAS_TRANSFERENCIA}`)
 
   if (ubicacion) {
     const address = ubicacion.address || `${ubicacion.latitude}, ${ubicacion.longitude}`
