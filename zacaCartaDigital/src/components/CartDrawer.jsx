@@ -9,6 +9,14 @@ function CartDrawer({ sucursal, ubicacion, whatsappNumber }) {
   const { items, subtotal, discountAmount, costoDelivery, zonaSeleccionada, total, closeCart, isCartOpen } = useCart()
   if (!isCartOpen) return null
 
+  function handleChooseDeliveryZone() {
+    closeCart()
+    window.requestAnimationFrame(() => {
+      document.getElementById('delivery-selection')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document.getElementById('delivery-zone-search')?.focus({ preventScroll: true })
+    })
+  }
+
   return (
     <div className="cart-overlay" onMouseDown={(event) => {
       if (event.target === event.currentTarget) closeCart()
@@ -39,7 +47,7 @@ function CartDrawer({ sucursal, ubicacion, whatsappNumber }) {
         ) : (
           <p className="cart-empty">Todavía no agregaste productos.</p>
         )}
-        <PayButton sucursal={sucursal} ubicacion={ubicacion} whatsappNumber={whatsappNumber} />
+        <PayButton sucursal={sucursal} ubicacion={ubicacion} whatsappNumber={whatsappNumber} onChooseDeliveryZone={handleChooseDeliveryZone} />
       </aside>
     </div>
   )

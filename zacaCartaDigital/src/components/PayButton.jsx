@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { useCart } from '../context/useCart'
 import { buildWhatsAppMessage } from '../utils/buildWhatsAppMessage'
 
-function PayButton({ sucursal, ubicacion, whatsappNumber }) {
+function PayButton({ sucursal, ubicacion, whatsappNumber, onChooseDeliveryZone }) {
   const { items, subtotal, zonaSeleccionada, costoDelivery, tipPercentage, tipAmount, metodoPago, total, clearCart } = useCart()
   const [wasSent, setWasSent] = useState(false)
+  const needsDeliveryZone = items.length > 0 && !zonaSeleccionada
 
   let missingRequirement = ''
   if (items.length === 0) missingRequirement = 'Agregá al menos un producto para continuar.'
@@ -47,7 +48,13 @@ function PayButton({ sucursal, ubicacion, whatsappNumber }) {
         </svg>
         <span>Enviar comanda a cocina</span>
       </button>
-      {missingRequirement && <p className="checkout-hint" role="status">{missingRequirement}</p>}
+      {missingRequirement && (needsDeliveryZone ? (
+        <button type="button" className="checkout-hint checkout-zone-action" onClick={onChooseDeliveryZone}>
+          <span aria-hidden="true">⚠️</span> Elegí tu zona de entrega →
+        </button>
+      ) : (
+        <p className="checkout-hint" role="status">{missingRequirement}</p>
+      ))}
       {wasSent && (
         <div className="checkout-success" role="status">
           <p>¡Gracias! Te redirigimos a WhatsApp para confirmar tu pedido 🎉</p>

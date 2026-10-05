@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { branches } from './data/branches'
 import { menuSections as defaultMenuSections, complements } from './data/menuData'
 import { FACEBOOK_URL, HORARIOS, INSTAGRAM_URL, WHATSAPP_NUMBER } from './config'
@@ -36,6 +36,8 @@ const categoryImages = {
   Tacos: tacosImage,
   Burritos: burritosImage,
 }
+
+const savedLocationKey = 'entrenos_direccion_guardada'
 
 function ChefHat() {
   return (
@@ -140,20 +142,21 @@ function CategorySection({ section, flyToCart }) {
       </div>
       {section.note && <p className="section-note">{section.note}</p>}
       <ul className="menu-list">{section.items.map((item, index) => <MenuItem key={item.name} item={item} sectionId={section.id} flyToCart={flyToCart} showDivider={index < section.items.length - 1} />)}</ul>
+      {section.complements && <Complements items={section.complements} id={`${section.id}-complements-title`} />}
       {section.footnote && <p className="section-footnote">{section.footnote}</p>}
     </section>
   )
 }
 
-function Complements() {
+function Complements({ items = complements, id = 'complements-title' } = {}) {
   return (
-    <aside className="complements" aria-labelledby="complements-title">
+    <aside className="complements" aria-labelledby={id}>
       <div>
         <p className="complements-eyebrow">EL TOQUE FINAL</p>
-        <h2 id="complements-title">Complementos a elección <span>¡GRATIS!</span></h2>
+        <h2 id={id}>Complementos a elección <span>¡GRATIS!</span></h2>
       </div>
       <ul className="complement-list">
-        {complements.map((complement) => (
+        {items.map((complement) => (
           <li key={complement.name}><span aria-hidden="true">{complement.icon}</span>{complement.name}</li>
         ))}
       </ul>
@@ -199,6 +202,7 @@ function createMenuSections(products) {
       subtitle: original?.subtitle,
       note: original?.note,
       footnote: original?.footnote,
+      complements: original?.complements,
       items: activeProducts.filter((product) => product.categoria === category).map((product) => ({
         id: product.id,
         name: product.nombre,
@@ -224,7 +228,21 @@ function PublicMenu({ data, activePromos }) {
   const facebookUrl = config.facebookUrl || FACEBOOK_URL
   const [isWelcomeVisible, setIsWelcomeVisible] = useState(true)
   const [search, setSearch] = useState('')
-  const [deliveryLocation, setDeliveryLocation] = useState(null)
+  const [deliveryLocation, setDeliveryLocation] = useState(() => {
+    try {
+      const savedLocation = window.localStorage.getItem(savedLocationKey)
+      return savedLocation ? JSON.parse(savedLocation) : null
+    } catch {
+      return null
+    }
+  })
+  const handleLocationChange = useCallback((updates) => {
+    setDeliveryLocation((current) => ({ ...current, ...updates }))
+  }, [])
+  useEffect(() => {
+    if (!deliveryLocation) return
+    window.localStorage.setItem(savedLocationKey, JSON.stringify(deliveryLocation))
+  }, [deliveryLocation])
   const [preferredBranchId, setPreferredBranchId] = useState('')
   const [assignedBranch, setAssignedBranch] = useState(null)
   const normalizedSearch = search.trim().toLocaleLowerCase('es')
@@ -268,27 +286,41 @@ function PublicMenu({ data, activePromos }) {
           ))
           : <p className="empty-state">No encontramos platos con “{search}”. Prueba con otro nombre.</p>}
         <section className="delivery-section" aria-labelledby="delivery-title">
-          <div className="section-heading">
-            <span className="section-index">00</span>
-            <h2 id="delivery-title">Elegí tu zona de entrega</h2>
-          </div>
-          <p className="delivery-intro">
-            Seleccioná tu zona para calcular el costo de envío. El mapa es opcional y sirve como referencia de ubicación.
-          </p>
-          <DeliveryZoneSelector
-            zonaSeleccionada={zonaSeleccionada}
-            zones={data.zonasDelivery}
-            whatsappNumber={whatsappNumber}
-            onSelectZone={(zone) => setDeliveryZone(zone?.zona ?? null, zone?.costo ?? 0)}
-          />
-          <div className="delivery-grid">
-            <LocationPicker location={deliveryLocation} onLocationChange={setDeliveryLocation} />
-            <BranchSelector
-              location={deliveryLocation}
-              preferredBranchId={preferredBranchId}
-              onPreferredBranchChange={setPreferredBranchId}
-              onAssignmentChange={setAssignedBranch}
+          <div className="delivery-card" id="delivery-selection">
+            <div className="delivery-card-heading">
+              <span aria-hidden="true">📍</span>
+              <div>
+                <h2 id="delivery-title">¿Dónde te lo llevamos?</h2>
+                <p>Elegí tu zona y agregá una referencia para la entrega.</p>
+              </div>
+            </div>
+            <DeliveryZoneSelector
+              zonaSeleccionada={zonaSeleccionada}
+              zones={data.zonasDelivery}
+              whatsappNumber={whatsappNumber}
+              onSelectZone={(zone) => setDeliveryZone(zone?.zona ?? null, zone?.costo ?? 0)}
             />
+            <div className="delivery-address-details">
+              <label className="location-reference-label" htmlFor="location-reference">Detalles de tu dirección</label>
+              <input
+                id="location-reference"
+                className="location-reference-input"
+                type="text"
+                value={deliveryLocation?.reference ?? ''}
+                onChange={(event) => handleLocationChange({ reference: event.target.value })}
+                placeholder="Ej: portón blanco, casa con reja negra, depto 3B, timbre no funciona"
+              />
+              <p className="location-reference-help">Esto ayuda al repartidor a encontrarte más rápido</p>
+            </div>
+            <div className="delivery-grid">
+              <LocationPicker location={deliveryLocation} onLocationChange={handleLocationChange} />
+              <BranchSelector
+                location={deliveryLocation}
+                preferredBranchId={preferredBranchId}
+                onPreferredBranchChange={setPreferredBranchId}
+                onAssignmentChange={setAssignedBranch}
+              />
+            </div>
           </div>
         </section>
         <Complements />

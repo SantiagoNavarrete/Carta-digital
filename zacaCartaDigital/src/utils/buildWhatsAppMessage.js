@@ -45,8 +45,9 @@ export function buildWhatsAppMessage({
 
   if (ubicacion) {
     const address = ubicacion.address || `${ubicacion.latitude}, ${ubicacion.longitude}`
-    lines.push(`📍 *Dirección de entrega:* ${address}`)
-    lines.push(`🗺️ *Ubicación:* https://www.google.com/maps?q=${ubicacion.latitude},${ubicacion.longitude}`)
+    lines.push(`📍 *Dirección:* ${address}`)
+    if (ubicacion.reference?.trim()) lines.push(`🏠 *Referencia:* ${ubicacion.reference.trim()}`)
+    lines.push(`🗺️ *Ver ubicación:* https://www.google.com/maps/search/?api=1&query=${ubicacion.latitude},${ubicacion.longitude}`)
   }
 
   lines.push('', '🛒 *Pedido:*')

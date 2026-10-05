@@ -2,7 +2,7 @@ import 'dotenv/config'
 import process from 'node:process'
 import { initializeApp } from 'firebase/app'
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
-import { doc, getFirestore, setDoc } from 'firebase/firestore'
+import { doc, getDoc, getFirestore, setDoc } from 'firebase/firestore'
 import { HORARIOS, INSTAGRAM_URL, FACEBOOK_URL, WHATSAPP_NUMBER } from '../src/config.js'
 import { menuSections } from '../src/data/menuData.js'
 import { ZONAS_DELIVERY } from '../src/data/zonasDelivery.js'
@@ -26,6 +26,7 @@ const app = initializeApp({
 })
 const auth = getAuth(app)
 const db = getFirestore(app)
+const menuOnly = process.argv.includes('--menu-only')
 
 await signInWithEmailAndPassword(auth, process.env.FIREBASE_SEED_EMAIL, process.env.FIREBASE_SEED_PASSWORD)
 
@@ -49,7 +50,24 @@ const products = menuSections.flatMap((section, sectionIndex) => section.items.m
 })))
 
 for (const product of products) {
-  await setDoc(doc(db, 'productos', product.id), product.data)
+  const productRef = doc(db, 'productos', product.id)
+  if (!menuOnly) {
+    await setDoc(productRef, product.data)
+    continue
+  }
+
+  const existingProduct = await getDoc(productRef)
+  const values = existingProduct.exists()
+    ? Object.fromEntries(['nombre', 'categoria', 'precio', 'descripcion', 'orden'].map((field) => [field, product.data[field]]))
+    : product.data
+  await setDoc(productRef, values, { merge: true })
+}
+
+if (menuOnly) {
+  const discontinuedProductId = `${makeId('Empanadas')}-${makeId('Pollo y calabaza')}`
+  await setDoc(doc(db, 'productos', discontinuedProductId), { activo: false }, { merge: true })
+  console.log(`Menú actualizado: ${products.length} productos sincronizados; no se modificaron zonas ni configuración.`)
+  process.exit(0)
 }
 for (const zone of ZONAS_DELIVERY) {
   await setDoc(doc(db, 'zonasDelivery', makeId(zone.zona)), zone)

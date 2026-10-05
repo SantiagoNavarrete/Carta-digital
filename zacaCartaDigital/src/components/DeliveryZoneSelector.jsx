@@ -114,9 +114,10 @@ function DeliveryZoneSelector({ zonaSeleccionada, onSelectZone, zones, whatsappN
       </div>
       {zonaSeleccionada && (
         <p className="delivery-zone-selected" role="status">
-          <span>Zona seleccionada</span>
+          <span>Zona:</span>
           <strong>{zonaSeleccionada}</strong>
-          <b>{formatMXN(zones.find(({ zona }) => zona === zonaSeleccionada)?.costo)}</b>
+          <b>Envío {formatMXN(zones.find(({ zona }) => zona === zonaSeleccionada)?.costo)}</b>
+          <span className="delivery-zone-check" aria-label="Zona confirmada">✓</span>
         </p>
       )}
       <a className="delivery-zone-help" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
