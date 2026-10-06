@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore'
 import { branches } from './data/branches'
 import { menuSections as defaultMenuSections, complements } from './data/menuData'
 import { FACEBOOK_URL, HORARIOS, INSTAGRAM_URL, WHATSAPP_NUMBER } from './config'
@@ -18,6 +19,7 @@ import { formatMXN } from './utils/currency'
 import { isPromoCurrent } from './utils/promotions'
 import useAdminData from './hooks/useAdminData'
 import Admin from './components/Admin'
+import { db } from './firebase/config'
 import milanesasImage from './assets/fotosStock/milanesas.jfif'
 import pizzaImage from './assets/fotosStock/pizza.jfif'
 import quesadillasImage from './assets/fotosStock/quesadillas.jfif'
@@ -38,6 +40,16 @@ const categoryImages = {
 }
 
 const savedLocationKey = 'entrenos_direccion_guardada'
+const savedCustomerPhoneKey = 'entrenos_cliente_telefono'
+
+function normalizeCustomerPhone(value) {
+  return value.replace(/\D/g, '')
+}
+
+function isValidCustomerPhone(value) {
+  const phone = value.trim()
+  return /^\+?[\d\s().-]{8,20}$/.test(phone) && /^\d{8,15}$/.test(normalizeCustomerPhone(phone))
+}
 
 function ChefHat() {
   return (
@@ -228,6 +240,24 @@ function PublicMenu({ data, activePromos }) {
   const facebookUrl = config.facebookUrl || FACEBOOK_URL
   const [isWelcomeVisible, setIsWelcomeVisible] = useState(true)
   const [search, setSearch] = useState('')
+  const [customerPhone, setCustomerPhone] = useState(() => {
+    try {
+      return window.localStorage.getItem(savedCustomerPhoneKey) ?? ''
+    } catch {
+      return ''
+    }
+  })
+  const [customerName, setCustomerName] = useState('')
+  const [customerProfileStatus, setCustomerProfileStatus] = useState(() => {
+    try {
+      return isValidCustomerPhone(window.localStorage.getItem(savedCustomerPhoneKey) ?? '') ? 'checking' : 'empty'
+    } catch {
+      return 'empty'
+    }
+  })
+  const [isChangingCustomerAddress, setIsChangingCustomerAddress] = useState(false)
+  const [zoneSearchVersion, setZoneSearchVersion] = useState(0)
+  const [customerProfileError, setCustomerProfileError] = useState('')
   const [deliveryLocation, setDeliveryLocation] = useState(() => {
     try {
       const savedLocation = window.localStorage.getItem(savedLocationKey)
@@ -239,10 +269,114 @@ function PublicMenu({ data, activePromos }) {
   const handleLocationChange = useCallback((updates) => {
     setDeliveryLocation((current) => ({ ...current, ...updates }))
   }, [])
+  const normalizedCustomerPhone = normalizeCustomerPhone(customerPhone)
+  const customerPhoneIsValid = isValidCustomerPhone(customerPhone)
+
+  useEffect(() => {
+    if (!customerPhoneIsValid || data.loading) return undefined
+
+    let isCurrentLookup = true
+    const timeout = window.setTimeout(async () => {
+      try {
+        if (!db) {
+          setCustomerProfileStatus('unavailable')
+          return
+        }
+        setCustomerProfileStatus('checking')
+        window.localStorage.setItem(savedCustomerPhoneKey, normalizedCustomerPhone)
+        const snapshot = await getDoc(doc(db, 'clientes', normalizedCustomerPhone))
+        if (!isCurrentLookup) return
+
+        if (!snapshot.exists()) {
+          setCustomerName('')
+          setCustomerProfileStatus('new')
+          setIsChangingCustomerAddress(false)
+          return
+        }
+
+        const profile = snapshot.data()
+        setCustomerName(profile.nombre ?? '')
+        setIsChangingCustomerAddress(false)
+        if (profile.ubicacion?.lat != null && profile.ubicacion?.lng != null) {
+          handleLocationChange({
+            latitude: Number(profile.ubicacion.lat),
+            longitude: Number(profile.ubicacion.lng),
+            address: profile.direccionTexto ?? '',
+            reference: profile.detallesDireccion ?? '',
+          })
+        }
+        const savedZone = data.zonasDelivery.find(({ zona }) => zona === profile.zonaSeleccionada)
+        setDeliveryZone(savedZone?.zona ?? null, savedZone?.costo ?? 0)
+        setCustomerProfileStatus('recognized')
+      } catch {
+        if (isCurrentLookup) setCustomerProfileStatus('unavailable')
+      }
+    }, 300)
+
+    return () => {
+      isCurrentLookup = false
+      window.clearTimeout(timeout)
+    }
+  }, [customerPhone, customerPhoneIsValid, data.loading, data.zonasDelivery, handleLocationChange, normalizedCustomerPhone, setDeliveryZone])
+
+  const saveCustomerProfile = useCallback(() => {
+    if (!db || !customerPhoneIsValid || !deliveryLocation
+      || deliveryLocation.latitude == null || deliveryLocation.longitude == null) return Promise.resolve()
+
+    const name = customerName.trim()
+    return setDoc(doc(db, 'clientes', normalizedCustomerPhone), {
+      ...(name ? { nombre: name } : {}),
+      telefono: normalizedCustomerPhone,
+      ubicacion: { lat: deliveryLocation.latitude, lng: deliveryLocation.longitude },
+      direccionTexto: deliveryLocation.address ?? '',
+      detallesDireccion: deliveryLocation.reference ?? '',
+      zonaSeleccionada: zonaSeleccionada ?? '',
+      ultimaActualizacion: serverTimestamp(),
+    }, { merge: true })
+  }, [customerName, customerPhoneIsValid, deliveryLocation, normalizedCustomerPhone, zonaSeleccionada])
+
+  useEffect(() => {
+    if (!['new', 'recognized'].includes(customerProfileStatus) || data.loading
+      || deliveryLocation?.latitude == null || deliveryLocation?.longitude == null) return undefined
+
+    const timeout = window.setTimeout(() => {
+      saveCustomerProfile()
+        .then(() => setCustomerProfileError(''))
+        .catch(() => setCustomerProfileError('No pudimos guardar tu dirección. Podés continuar con el pedido.'))
+    }, 500)
+    return () => window.clearTimeout(timeout)
+  }, [customerProfileStatus, data.loading, deliveryLocation, saveCustomerProfile])
+
   useEffect(() => {
     if (!deliveryLocation) return
     window.localStorage.setItem(savedLocationKey, JSON.stringify(deliveryLocation))
   }, [deliveryLocation])
+
+  function handleCustomerPhoneChange(event) {
+    const nextPhone = event.target.value
+    const nextNormalizedPhone = normalizeCustomerPhone(nextPhone)
+    if (customerProfileStatus === 'recognized' && nextNormalizedPhone !== normalizedCustomerPhone) {
+      setDeliveryLocation(null)
+      window.localStorage.removeItem(savedLocationKey)
+      setDeliveryZone(null, 0)
+      setZoneSearchVersion((version) => version + 1)
+    }
+    setCustomerPhone(nextPhone)
+    setIsChangingCustomerAddress(false)
+    setCustomerProfileError('')
+    const isPhoneValid = isValidCustomerPhone(nextPhone)
+    setCustomerProfileStatus(isPhoneValid ? 'checking' : nextPhone.trim() ? 'invalid' : 'empty')
+    if (isPhoneValid) window.localStorage.setItem(savedCustomerPhoneKey, nextNormalizedPhone)
+    else window.localStorage.removeItem(savedCustomerPhoneKey)
+  }
+
+  function changeCustomerAddress() {
+    setIsChangingCustomerAddress(true)
+    setDeliveryLocation(null)
+    window.localStorage.removeItem(savedLocationKey)
+    setDeliveryZone(null, 0)
+    setZoneSearchVersion((version) => version + 1)
+  }
   const [preferredBranchId, setPreferredBranchId] = useState('')
   const [assignedBranch, setAssignedBranch] = useState(null)
   const normalizedSearch = search.trim().toLocaleLowerCase('es')
@@ -294,7 +428,44 @@ function PublicMenu({ data, activePromos }) {
                 <p>Elegí tu zona y agregá una referencia para la entrega.</p>
               </div>
             </div>
+            <div className="customer-identification">
+              <div className="customer-identification-fields">
+                <label>
+                  Tu número de WhatsApp
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    value={customerPhone}
+                    onChange={handleCustomerPhoneChange}
+                    placeholder="Ej: +52 984 123 4567"
+                    aria-invalid={Boolean(customerPhone) && !customerPhoneIsValid}
+                  />
+                  {customerPhone && !customerPhoneIsValid && <small>Ingresá un número válido de 8 a 15 dígitos.</small>}
+                </label>
+                {!['checking', 'recognized'].includes(customerProfileStatus) && (
+                  <label>
+                    Tu nombre <span>(opcional)</span>
+                    <input
+                      type="text"
+                      autoComplete="given-name"
+                      value={customerName}
+                      onChange={(event) => setCustomerName(event.target.value)}
+                      placeholder="¿Cómo te llamás?"
+                    />
+                  </label>
+                )}
+              </div>
+              {customerProfileStatus === 'recognized' && !isChangingCustomerAddress && (
+                <div className="returning-customer" role="status">
+                  <p>¡Hola de nuevo{customerName.trim() ? `, ${customerName.trim()}` : ''}! 👋 Ya tenemos tu dirección guardada</p>
+                  <button type="button" onClick={changeCustomerAddress}>No es mi dirección / Cambiar</button>
+                </div>
+              )}
+              {customerProfileError && <p className="customer-profile-error" role="status">{customerProfileError}</p>}
+            </div>
             <DeliveryZoneSelector
+              key={zoneSearchVersion}
               zonaSeleccionada={zonaSeleccionada}
               zones={data.zonasDelivery}
               whatsappNumber={whatsappNumber}
@@ -331,6 +502,8 @@ function PublicMenu({ data, activePromos }) {
         sucursal={assignedBranch}
         ubicacion={deliveryLocation}
         whatsappNumber={whatsappNumber}
+        cliente={customerName}
+        onOrderComplete={saveCustomerProfile}
       />
       {flights.map((flight) => <FlyingDot key={flight.id} flight={flight} onFinish={finishFlight} />)}
       </div>

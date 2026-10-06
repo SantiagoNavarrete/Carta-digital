@@ -20,6 +20,7 @@ function getItemComplements(item) {
 }
 
 export function buildWhatsAppMessage({
+  cliente,
   items,
   sucursal,
   ubicacion,
@@ -31,7 +32,9 @@ export function buildWhatsAppMessage({
   propina,
   total,
 }) {
-  const lines = [
+  const lines = []
+  if (cliente?.trim()) lines.push(`👤 *Cliente:* ${cliente.trim()}`)
+  lines.push(
     '🍽️ *NUEVO PEDIDO - EntreNos*',
     '',
     '📦 *Modalidad:* Delivery',
@@ -39,7 +42,7 @@ export function buildWhatsAppMessage({
     `🏘️ *Zona de entrega:* ${zonaSeleccionada}`,
     `🛵 *Envío (${zonaSeleccionada}):* ${formatAmount(costoDelivery)}`,
     `💳 *Método de pago:* ${paymentMethodLabels[metodoPago] ?? 'Sin seleccionar'}`,
-  ]
+  )
 
   if (metodoPago === 'transferencia') lines.push(`🏦 *Alias:* ${ALIAS_TRANSFERENCIA}`)
 

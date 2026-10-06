@@ -1,4 +1,4 @@
-import { useReducer } from 'react'
+import { useCallback, useReducer } from 'react'
 import { CartContext, cartReducer, initialCartState } from './cartState'
 import { getPromoDiscount } from '../utils/promotions'
 
@@ -8,6 +8,9 @@ function CartProvider({ children, promotions = [] }) {
   const subtotal = state.items.reduce((total, item) => total + item.price * item.quantity, 0)
   const discountAmount = Math.min(subtotal, getPromoDiscount(state.items, promotions))
   const tipAmount = Math.round(subtotal * state.tipPercentage / 100)
+  const setDeliveryZone = useCallback((zona, costo = 0) => {
+    dispatch({ type: 'set-delivery-zone', zona, costo })
+  }, [])
 
   const value = {
     ...state,
@@ -25,7 +28,7 @@ function CartProvider({ children, promotions = [] }) {
     clearCart: () => dispatch({ type: 'clear-cart' }),
     setTipPercentage: (percentage) => dispatch({ type: 'set-tip', percentage }),
     setMetodoPago: (metodoPago) => dispatch({ type: 'set-payment-method', metodoPago }),
-    setDeliveryZone: (zona, costo = 0) => dispatch({ type: 'set-delivery-zone', zona, costo }),
+    setDeliveryZone,
     openCart: () => dispatch({ type: 'open-cart' }),
     closeCart: () => dispatch({ type: 'close-cart' }),
   }

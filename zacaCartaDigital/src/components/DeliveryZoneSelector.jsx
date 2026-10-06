@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { formatMXN } from '../utils/currency'
 
 function DeliveryZoneSelector({ zonaSeleccionada, onSelectZone, zones, whatsappNumber }) {
@@ -12,6 +12,15 @@ function DeliveryZoneSelector({ zonaSeleccionada, onSelectZone, zones, whatsappN
   ), [normalizedQuery, zones])
   const whatsappMessage = encodeURIComponent('Hola, no encuentro mi zona en la lista. ¿Me confirman el costo de envío?')
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`
+
+  useEffect(() => {
+    if (!zonaSeleccionada) return undefined
+    const timeout = window.setTimeout(() => {
+      setQuery(zonaSeleccionada)
+      setIsOpen(false)
+    }, 0)
+    return () => window.clearTimeout(timeout)
+  }, [zonaSeleccionada])
 
   function selectZone(zone) {
     setQuery(zone.zona)

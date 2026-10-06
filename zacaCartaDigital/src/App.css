@@ -621,6 +621,40 @@
 .delivery-card-heading h2 { margin: 0; color: var(--green); font-family: 'Dancing Script', cursive; font-size: 30px; font-weight: 700; line-height: 1.15; }
 .delivery-card-heading p { margin: 4px 0 0; color: #63716b; font-size: 12px; line-height: 1.45; }
 
+.customer-identification { margin: 0 0 20px; }
+.customer-identification-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.customer-identification-fields label { display: grid; align-content: start; gap: 6px; color: var(--green-deep); font-size: 12px; font-weight: 700; }
+.customer-identification-fields label > span { color: #78827e; font-size: 11px; font-weight: 400; }
+.customer-identification-fields input {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid #b9cec2;
+  border-radius: 5px;
+  background: #fffefa;
+  color: var(--ink);
+  font: 14px 'DM Sans', sans-serif;
+}
+.customer-identification-fields input:focus-visible { outline: 3px solid rgb(48 188 249 / 32%); outline-offset: 2px; border-color: var(--green); }
+.customer-identification-fields small { color: #a63c36; font-size: 11px; font-weight: 500; }
+.returning-customer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 12px;
+  padding: 11px 13px;
+  border: 1px solid #c7e5da;
+  border-radius: 5px;
+  background: #eaf5ee;
+}
+.returning-customer p { margin: 0; color: var(--green-deep); font-size: 12px; font-weight: 600; line-height: 1.45; }
+.returning-customer button { padding: 3px 0; border: 0; background: transparent; color: #496c5b; cursor: pointer; font: inherit; font-size: 11px; text-decoration: underline; text-underline-offset: 3px; }
+.returning-customer button:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+.customer-profile-error { margin: 9px 0 0; color: #a63c36; font-size: 11px; }
+
 .delivery-intro {
   margin: 0 0 18px 29px;
   color: #63716b;
@@ -1273,6 +1307,8 @@
   .delivery-card-heading { align-items: flex-start; gap: 9px; margin-bottom: 16px; }
   .delivery-card-heading > span { font-size: 23px; }
   .delivery-card-heading h2 { font-size: 26px; }
+  .customer-identification-fields { grid-template-columns: 1fr; gap: 10px; }
+  .returning-customer { align-items: flex-start; flex-direction: column; }
   .delivery-map { height: 290px; }
   .delivery-address-details { margin-block: 17px 19px; }
   .location-map-heading { align-items: flex-start; }

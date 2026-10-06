@@ -6,5 +6,10 @@ service cloud.firestore {
       allow write: if collection in ['productos', 'promociones', 'zonasDelivery', 'config']
         && request.auth != null;
     }
+
+    match /clientes/{clienteId} {
+      // V1 without customer authentication: anyone who knows a phone number can read or edit that profile.
+      allow read, write: if true;
+    }
   }
 }

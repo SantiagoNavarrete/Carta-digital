@@ -5,7 +5,7 @@ import PayButton from './PayButton'
 import { useCart } from '../context/useCart'
 import { formatMXN } from '../utils/currency'
 
-function CartDrawer({ sucursal, ubicacion, whatsappNumber }) {
+function CartDrawer({ sucursal, ubicacion, whatsappNumber, cliente, onOrderComplete }) {
   const { items, subtotal, discountAmount, costoDelivery, zonaSeleccionada, total, closeCart, isCartOpen } = useCart()
   if (!isCartOpen) return null
 
@@ -47,7 +47,14 @@ function CartDrawer({ sucursal, ubicacion, whatsappNumber }) {
         ) : (
           <p className="cart-empty">Todavía no agregaste productos.</p>
         )}
-        <PayButton sucursal={sucursal} ubicacion={ubicacion} whatsappNumber={whatsappNumber} onChooseDeliveryZone={handleChooseDeliveryZone} />
+        <PayButton
+          sucursal={sucursal}
+          ubicacion={ubicacion}
+          whatsappNumber={whatsappNumber}
+          cliente={cliente}
+          onOrderComplete={onOrderComplete}
+          onChooseDeliveryZone={handleChooseDeliveryZone}
+        />
       </aside>
     </div>
   )
