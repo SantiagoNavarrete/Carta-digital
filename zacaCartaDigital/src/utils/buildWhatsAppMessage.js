@@ -22,7 +22,6 @@ function getItemComplements(item) {
 export function buildWhatsAppMessage({
   cliente,
   items,
-  sucursal,
   ubicacion,
   zonaSeleccionada,
   costoDelivery,
@@ -38,7 +37,6 @@ export function buildWhatsAppMessage({
     '🍽️ *NUEVO PEDIDO - EntreNos*',
     '',
     '📦 *Modalidad:* Delivery',
-    `🏪 *Sucursal:* ${sucursal?.name ?? 'Sin sucursal seleccionada'}`,
     `🏘️ *Zona de entrega:* ${zonaSeleccionada}`,
     `🛵 *Envío (${zonaSeleccionada}):* ${formatAmount(costoDelivery)}`,
     `💳 *Método de pago:* ${paymentMethodLabels[metodoPago] ?? 'Sin seleccionar'}`,

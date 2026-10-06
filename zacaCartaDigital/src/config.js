@@ -1,6 +1,6 @@
 export const INSTAGRAM_URL = 'https://www.instagram.com/entrenos'
 export const FACEBOOK_URL = 'https://www.facebook.com/entrenos'
-export const WHATSAPP_NUMBER = '5492604635871'
+export const WHATSAPP_NUMBER = '529841081079'
 export const ALIAS_TRANSFERENCIA = 'entrenos.delivery'
 
 export const HORARIOS = {

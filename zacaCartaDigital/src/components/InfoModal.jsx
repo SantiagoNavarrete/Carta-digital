@@ -31,7 +31,7 @@ function BranchInfo({ branch, index }) {
     <section className="info-branch" aria-labelledby={`branch-title-${branch.id}`}>
       <div className="info-branch-heading">
         <div>
-          <p className="info-eyebrow">Sucursal {index + 1}</p>
+          <p className="info-eyebrow">Ubicación {index + 1}</p>
           <h3 id={`branch-title-${branch.id}`}>{branch.name}</h3>
         </div>
         <span className={`info-status ${status.isOpen ? 'is-open' : 'is-closed'}`}>

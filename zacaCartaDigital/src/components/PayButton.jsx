@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useCart } from '../context/useCart'
 import { buildWhatsAppMessage } from '../utils/buildWhatsAppMessage'
 
-function PayButton({ sucursal, ubicacion, whatsappNumber, cliente, onOrderComplete, onChooseDeliveryZone }) {
+function PayButton({ ubicacion, whatsappNumber, cliente, onOrderComplete, onChooseDeliveryZone }) {
   const { items, subtotal, zonaSeleccionada, costoDelivery, tipPercentage, tipAmount, metodoPago, total, clearCart } = useCart()
   const [wasSent, setWasSent] = useState(false)
   const needsDeliveryZone = items.length > 0 && !zonaSeleccionada
@@ -18,7 +18,6 @@ function PayButton({ sucursal, ubicacion, whatsappNumber, cliente, onOrderComple
     const message = buildWhatsAppMessage({
       cliente,
       items,
-      sucursal,
       ubicacion,
       zonaSeleccionada,
       costoDelivery,

@@ -5,14 +5,20 @@ import PayButton from './PayButton'
 import { useCart } from '../context/useCart'
 import { formatMXN } from '../utils/currency'
 
-function CartDrawer({ sucursal, ubicacion, whatsappNumber, cliente, onOrderComplete }) {
-  const { items, subtotal, discountAmount, costoDelivery, zonaSeleccionada, total, closeCart, isCartOpen } = useCart()
+function CartDrawer({ ubicacion, whatsappNumber, cliente, onOrderComplete, children }) {
+  const { items, subtotal, discountAmount, total, closeCart, isCartOpen } = useCart()
   if (!isCartOpen) return null
 
   function handleChooseDeliveryZone() {
-    closeCart()
     window.requestAnimationFrame(() => {
-      document.getElementById('delivery-selection')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      const deliverySection = document.getElementById('delivery-selection')
+      const cartContent = deliverySection?.closest('.cart-drawer-content')
+      if (deliverySection && cartContent) {
+        const top = cartContent.scrollTop
+          + deliverySection.getBoundingClientRect().top
+          - cartContent.getBoundingClientRect().top
+        cartContent.scrollTo({ top, behavior: 'smooth' })
+      }
       document.getElementById('delivery-zone-search')?.focus({ preventScroll: true })
     })
   }
@@ -29,26 +35,26 @@ function CartDrawer({ sucursal, ubicacion, whatsappNumber, cliente, onOrderCompl
           </div>
           <button type="button" className="cart-close" onClick={closeCart} aria-label="Cerrar carrito">×</button>
         </header>
-        {items.length > 0 ? (
-          <>
-            <ul className="cart-items-list">{items.map((item) => <CartItem key={item.id} item={item} />)}</ul>
-            <div className="cart-totals">
-              <div className="cart-total-line"><span>Subtotal</span><strong>{formatMXN(subtotal)}</strong></div>
-              {discountAmount > 0 && <div className="cart-total-line"><span>Descuento de promoción</span><strong>−{formatMXN(discountAmount)}</strong></div>}
-              <div className="cart-total-line">
-                <span>{zonaSeleccionada ? `Envío (${zonaSeleccionada})` : 'Envío'}</span>
-                <strong>{zonaSeleccionada ? formatMXN(costoDelivery) : 'Elegí una zona'}</strong>
+        <div className="cart-drawer-content">
+          {items.length > 0 ? (
+            <>
+              <ul className="cart-items-list">{items.map((item) => <CartItem key={item.id} item={item} />)}</ul>
+              <div className="cart-totals">
+                <div className="cart-total-line"><span>Subtotal</span><strong>{formatMXN(subtotal)}</strong></div>
+                {discountAmount > 0 && <div className="cart-total-line"><span>Descuento de promoción</span><strong>−{formatMXN(discountAmount)}</strong></div>}
               </div>
-              <TipSelector />
-              <div className="cart-total-line cart-grand-total"><span>Total</span><strong>{formatMXN(total)}</strong></div>
-              <PaymentMethodSelector />
-            </div>
-          </>
-        ) : (
-          <p className="cart-empty">Todavía no agregaste productos.</p>
-        )}
+              {children}
+              <div className="cart-totals cart-payment-totals">
+                <TipSelector />
+                <PaymentMethodSelector />
+                <div className="cart-total-line cart-grand-total"><span>Total</span><strong>{formatMXN(total)}</strong></div>
+              </div>
+            </>
+          ) : (
+            <p className="cart-empty">Todavía no agregaste productos.</p>
+          )}
+        </div>
         <PayButton
-          sucursal={sucursal}
           ubicacion={ubicacion}
           whatsappNumber={whatsappNumber}
           cliente={cliente}

@@ -3,7 +3,6 @@ import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore'
 import { branches } from './data/branches'
 import { menuSections as defaultMenuSections, complements } from './data/menuData'
 import { FACEBOOK_URL, HORARIOS, INSTAGRAM_URL, WHATSAPP_NUMBER } from './config'
-import BranchSelector from './components/BranchSelector'
 import CartDrawer from './components/CartDrawer'
 import CartIcon from './components/CartIcon'
 import FlyingDot from './components/FlyingDot'
@@ -377,8 +376,6 @@ function PublicMenu({ data, activePromos }) {
     setDeliveryZone(null, 0)
     setZoneSearchVersion((version) => version + 1)
   }
-  const [preferredBranchId, setPreferredBranchId] = useState('')
-  const [assignedBranch, setAssignedBranch] = useState(null)
   const normalizedSearch = search.trim().toLocaleLowerCase('es')
   const visibleSections = menuSections.map((section) => ({
     ...section,
@@ -419,7 +416,17 @@ function PublicMenu({ data, activePromos }) {
             </Fragment>
           ))
           : <p className="empty-state">No encontramos platos con “{search}”. Prueba con otro nombre.</p>}
-        <section className="delivery-section" aria-labelledby="delivery-title">
+        <Complements />
+      </main>
+      <Footer instagramUrl={instagramUrl} facebookUrl={facebookUrl} />
+      <CartIcon ref={cartIconRef} />
+      <CartDrawer
+        ubicacion={deliveryLocation}
+        whatsappNumber={whatsappNumber}
+        cliente={customerName}
+        onOrderComplete={saveCustomerProfile}
+      >
+        <section className="cart-delivery-section" aria-labelledby="delivery-title">
           <div className="delivery-card" id="delivery-selection">
             <div className="delivery-card-heading">
               <span aria-hidden="true">📍</span>
@@ -485,26 +492,10 @@ function PublicMenu({ data, activePromos }) {
             </div>
             <div className="delivery-grid">
               <LocationPicker location={deliveryLocation} onLocationChange={handleLocationChange} />
-              <BranchSelector
-                location={deliveryLocation}
-                preferredBranchId={preferredBranchId}
-                onPreferredBranchChange={setPreferredBranchId}
-                onAssignmentChange={setAssignedBranch}
-              />
             </div>
           </div>
         </section>
-        <Complements />
-      </main>
-      <Footer instagramUrl={instagramUrl} facebookUrl={facebookUrl} />
-      <CartIcon ref={cartIconRef} />
-      <CartDrawer
-        sucursal={assignedBranch}
-        ubicacion={deliveryLocation}
-        whatsappNumber={whatsappNumber}
-        cliente={customerName}
-        onOrderComplete={saveCustomerProfile}
-      />
+      </CartDrawer>
       {flights.map((flight) => <FlyingDot key={flight.id} flight={flight} onFinish={finishFlight} />)}
       </div>
       <OpenStatusButton branches={branches} horarios={horarios} />
